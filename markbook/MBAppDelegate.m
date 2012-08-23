@@ -7,16 +7,20 @@
 //
 
 #import "MBAppDelegate.h"
+#import "MBWindowController.h"
 
 @implementation MBAppDelegate
 
 @synthesize persistentStoreCoordinator = _persistentStoreCoordinator;
 @synthesize managedObjectModel = _managedObjectModel;
 @synthesize managedObjectContext = _managedObjectContext;
+@synthesize myWindowController;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Insert code here to initialize your application
+    myWindowController = [[MBWindowController alloc] initWithWindowNibName:@"MBWindowController"];
+    [myWindowController showWindow:self];
 }
 
 // Returns the directory the application uses to store the Core Data store file. This code uses a directory named "sina.markbook" in the user's Application Support directory.

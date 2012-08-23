@@ -14,16 +14,27 @@
 
 @implementation MBWindowController
 @synthesize webView;
+@synthesize sourceList;
 
 - (id) init {
-    self = [super initWithWindowNibName:@"MainMenu"];
+    self = [super initWithWindowNibName:@"MBWindowController"];
     return self;
 }
 
 - (void) awakeFromNib {
-    NSString *root = @"/Users/amoblin/markbook";
-    NSString *filedir = @"source/_posts";
-    NSString *filename = @"2011-11-24-linux-shell-pipe.rst";
+    
+    NSString *root = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook"];
+    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSArray *filelist = [[NSArray alloc] init];
+    filelist = [fileManager contentsOfDirectoryAtPath:notesPath error:nil];
+    for (NSString *file in filelist) {
+        NSLog(@"%@", file);
+    }
+    
+    NSString *filedir = @"notes/mac";
+    NSString *filename = @"cocoa.rst";
     NSString *source = [NSString stringWithFormat:@"%@/%@/%@", root, filedir, filename];
     NSString *dest = [NSTemporaryDirectory() stringByAppendingFormat:@"%@.htm", filename];
     NSString *url = [NSString stringWithFormat:@"file://%@", dest];
@@ -50,5 +61,9 @@
     
     // Implement this method to handle any initialization after your window controller's window has been loaded from its nib file.
 }
+
+#pragma mark - NSOutlineView delegate  
+
+//- (BOOL)outlineView:
 
 @end

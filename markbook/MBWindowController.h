@@ -11,5 +11,6 @@
 
 @interface MBWindowController : NSWindowController
 @property (weak) IBOutlet WebView *webView;
+@property (weak) IBOutlet NSOutlineView *sourceList;
 
 @end

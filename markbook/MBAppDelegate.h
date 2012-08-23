@@ -8,13 +8,15 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface MBAppDelegate : NSObject <NSApplicationDelegate>
+@class MBWindowController;
 
-@property (assign) IBOutlet NSWindow *window;
+@interface MBAppDelegate : NSObject <NSApplicationDelegate>
 
 @property (readonly, strong, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
 @property (readonly, strong, nonatomic) NSManagedObjectModel *managedObjectModel;
 @property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
+
+@property (strong) MBWindowController *myWindowController;
 
 - (IBAction)saveAction:(id)sender;
 

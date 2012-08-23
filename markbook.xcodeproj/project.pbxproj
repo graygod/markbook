@@ -85,7 +85,6 @@
 		DAC3127415E5C1CF00261862 = {
 			isa = PBXGroup;
 			children = (
-				DAC312BA15E5C4D400261862 /* WebKit.framework */,
 				DAC3128915E5C1CF00261862 /* markbook */,
 				DAC312A915E5C1D000261862 /* markbookTests */,
 				DAC3128215E5C1CF00261862 /* Frameworks */,
@@ -105,6 +104,7 @@
 		DAC3128215E5C1CF00261862 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DAC312BA15E5C4D400261862 /* WebKit.framework */,
 				DAC3128315E5C1CF00261862 /* Cocoa.framework */,
 				DAC312A415E5C1D000261862 /* SenTestingKit.framework */,
 				DAC3128515E5C1CF00261862 /* Other Frameworks */,
@@ -461,6 +461,7 @@
 				DAC312B615E5C1D000261862 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		DAC312B715E5C1D000261862 /* Build configuration list for PBXNativeTarget "markbookTests" */ = {
 			isa = XCConfigurationList;
@@ -469,6 +470,7 @@
 				DAC312B915E5C1D000261862 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
