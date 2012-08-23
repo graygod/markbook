@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DA16B39A15E660FD00D133C9 /* ChildNode.m in Sources */ = {isa = PBXBuildFile; fileRef = DA16B39915E660FD00D133C9 /* ChildNode.m */; };
+		DA16B39D15E6611000D133C9 /* BaseNode.m in Sources */ = {isa = PBXBuildFile; fileRef = DA16B39C15E6611000D133C9 /* BaseNode.m */; };
+		DA16B3A115E661E600D133C9 /* NSArray_Extensions.m in Sources */ = {isa = PBXBuildFile; fileRef = DA16B3A015E661E600D133C9 /* NSArray_Extensions.m */; };
+		DA16B3A415E665CB00D133C9 /* ImageAndTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = DA16B3A315E665CB00D133C9 /* ImageAndTextCell.m */; };
+		DA16B3A715E66A0500D133C9 /* SeparatorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = DA16B3A615E66A0500D133C9 /* SeparatorCell.m */; };
 		DAC3128415E5C1CF00261862 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAC3128315E5C1CF00261862 /* Cocoa.framework */; };
 		DAC3128E15E5C1CF00261862 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DAC3128C15E5C1CF00261862 /* InfoPlist.strings */; };
 		DAC3129015E5C1CF00261862 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DAC3128F15E5C1CF00261862 /* main.m */; };
@@ -34,6 +39,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		DA16B39815E660FD00D133C9 /* ChildNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChildNode.h; sourceTree = "<group>"; };
+		DA16B39915E660FD00D133C9 /* ChildNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChildNode.m; sourceTree = "<group>"; };
+		DA16B39B15E6611000D133C9 /* BaseNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseNode.h; sourceTree = "<group>"; };
+		DA16B39C15E6611000D133C9 /* BaseNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseNode.m; sourceTree = "<group>"; };
+		DA16B39F15E661E600D133C9 /* NSArray_Extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSArray_Extensions.h; sourceTree = "<group>"; };
+		DA16B3A015E661E600D133C9 /* NSArray_Extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSArray_Extensions.m; sourceTree = "<group>"; };
+		DA16B3A215E665CB00D133C9 /* ImageAndTextCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageAndTextCell.h; sourceTree = "<group>"; };
+		DA16B3A315E665CB00D133C9 /* ImageAndTextCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageAndTextCell.m; sourceTree = "<group>"; };
+		DA16B3A515E66A0500D133C9 /* SeparatorCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SeparatorCell.h; sourceTree = "<group>"; };
+		DA16B3A615E66A0500D133C9 /* SeparatorCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SeparatorCell.m; sourceTree = "<group>"; };
 		DAC3127F15E5C1CF00261862 /* markbook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = markbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAC3128315E5C1CF00261862 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		DAC3128615E5C1CF00261862 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -82,9 +97,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DA16B39E15E661BD00D133C9 /* SourceView */ = {
+			isa = PBXGroup;
+			children = (
+				DA16B3A515E66A0500D133C9 /* SeparatorCell.h */,
+				DA16B3A615E66A0500D133C9 /* SeparatorCell.m */,
+				DA16B3A215E665CB00D133C9 /* ImageAndTextCell.h */,
+				DA16B3A315E665CB00D133C9 /* ImageAndTextCell.m */,
+				DA16B39F15E661E600D133C9 /* NSArray_Extensions.h */,
+				DA16B3A015E661E600D133C9 /* NSArray_Extensions.m */,
+				DA16B39B15E6611000D133C9 /* BaseNode.h */,
+				DA16B39C15E6611000D133C9 /* BaseNode.m */,
+				DA16B39815E660FD00D133C9 /* ChildNode.h */,
+				DA16B39915E660FD00D133C9 /* ChildNode.m */,
+			);
+			name = SourceView;
+			path = markbook;
+			sourceTree = "<group>";
+		};
 		DAC3127415E5C1CF00261862 = {
 			isa = PBXGroup;
 			children = (
+				DA16B39E15E661BD00D133C9 /* SourceView */,
 				DAC3128915E5C1CF00261862 /* markbook */,
 				DAC312A915E5C1D000261862 /* markbookTests */,
 				DAC3128215E5C1CF00261862 /* Frameworks */,
@@ -282,6 +316,11 @@
 				DAC3129715E5C1CF00261862 /* MBAppDelegate.m in Sources */,
 				DAC3129D15E5C1CF00261862 /* markbook.xcdatamodeld in Sources */,
 				DAC3132815E5DE3B00261862 /* MBWindowController.m in Sources */,
+				DA16B39A15E660FD00D133C9 /* ChildNode.m in Sources */,
+				DA16B39D15E6611000D133C9 /* BaseNode.m in Sources */,
+				DA16B3A115E661E600D133C9 /* NSArray_Extensions.m in Sources */,
+				DA16B3A415E665CB00D133C9 /* ImageAndTextCell.m in Sources */,
+				DA16B3A715E66A0500D133C9 /* SeparatorCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
