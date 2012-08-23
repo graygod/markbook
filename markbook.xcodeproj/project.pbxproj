@@ -19,6 +19,8 @@
 		DAC312AE15E5C1D000261862 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DAC312AC15E5C1D000261862 /* InfoPlist.strings */; };
 		DAC312B115E5C1D000261862 /* markbookTests.m in Sources */ = {isa = PBXBuildFile; fileRef = DAC312B015E5C1D000261862 /* markbookTests.m */; };
 		DAC312BB15E5C4D400261862 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAC312BA15E5C4D400261862 /* WebKit.framework */; };
+		DAC3132815E5DE3B00261862 /* MBWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = DAC3132615E5DE3B00261862 /* MBWindowController.m */; };
+		DAC3132915E5DE3B00261862 /* MBWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = DAC3132715E5DE3B00261862 /* MBWindowController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +55,9 @@
 		DAC312AF15E5C1D000261862 /* markbookTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = markbookTests.h; sourceTree = "<group>"; };
 		DAC312B015E5C1D000261862 /* markbookTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = markbookTests.m; sourceTree = "<group>"; };
 		DAC312BA15E5C4D400261862 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		DAC3132515E5DE3B00261862 /* MBWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBWindowController.h; sourceTree = "<group>"; };
+		DAC3132615E5DE3B00261862 /* MBWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBWindowController.m; sourceTree = "<group>"; };
+		DAC3132715E5DE3B00261862 /* MBWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MBWindowController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -123,6 +128,9 @@
 				DAC3129515E5C1CF00261862 /* MBAppDelegate.h */,
 				DAC3129615E5C1CF00261862 /* MBAppDelegate.m */,
 				DAC3129815E5C1CF00261862 /* MainMenu.xib */,
+				DAC3132515E5DE3B00261862 /* MBWindowController.h */,
+				DAC3132615E5DE3B00261862 /* MBWindowController.m */,
+				DAC3132715E5DE3B00261862 /* MBWindowController.xib */,
 				DAC3129B15E5C1CF00261862 /* markbook.xcdatamodeld */,
 				DAC3128A15E5C1CF00261862 /* Supporting Files */,
 			);
@@ -235,6 +243,7 @@
 				DAC3128E15E5C1CF00261862 /* InfoPlist.strings in Resources */,
 				DAC3129415E5C1CF00261862 /* Credits.rtf in Resources */,
 				DAC3129A15E5C1CF00261862 /* MainMenu.xib in Resources */,
+				DAC3132915E5DE3B00261862 /* MBWindowController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,6 +281,7 @@
 				DAC3129015E5C1CF00261862 /* main.m in Sources */,
 				DAC3129715E5C1CF00261862 /* MBAppDelegate.m in Sources */,
 				DAC3129D15E5C1CF00261862 /* markbook.xcdatamodeld in Sources */,
+				DAC3132815E5DE3B00261862 /* MBWindowController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
