@@ -18,6 +18,7 @@
 		DAC312A615E5C1D000261862 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAC3128315E5C1CF00261862 /* Cocoa.framework */; };
 		DAC312AE15E5C1D000261862 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DAC312AC15E5C1D000261862 /* InfoPlist.strings */; };
 		DAC312B115E5C1D000261862 /* markbookTests.m in Sources */ = {isa = PBXBuildFile; fileRef = DAC312B015E5C1D000261862 /* markbookTests.m */; };
+		DAC312BB15E5C4D400261862 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAC312BA15E5C4D400261862 /* WebKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		DAC312AD15E5C1D000261862 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DAC312AF15E5C1D000261862 /* markbookTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = markbookTests.h; sourceTree = "<group>"; };
 		DAC312B015E5C1D000261862 /* markbookTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = markbookTests.m; sourceTree = "<group>"; };
+		DAC312BA15E5C4D400261862 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DAC312BB15E5C4D400261862 /* WebKit.framework in Frameworks */,
 				DAC3128415E5C1CF00261862 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -77,6 +80,7 @@
 		DAC3127415E5C1CF00261862 = {
 			isa = PBXGroup;
 			children = (
+				DAC312BA15E5C4D400261862 /* WebKit.framework */,
 				DAC3128915E5C1CF00261862 /* markbook */,
 				DAC312A915E5C1D000261862 /* markbookTests */,
 				DAC3128215E5C1CF00261862 /* Frameworks */,
