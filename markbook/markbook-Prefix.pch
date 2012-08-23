@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'markbook' target in the 'markbook' project
+//
+
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif
