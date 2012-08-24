@@ -30,6 +30,14 @@
 
 #define kNodesPBoardType		@"myNodesPBoardType"	// drag and drop pasteboard type
 
+#define KEY_NAME				@"name"
+#define KEY_URL					@"url"
+#define KEY_SEPARATOR			@"separator"
+#define KEY_GROUP				@"group"
+#define KEY_FOLDER				@"folder"
+#define KEY_ENTRIES				@"entries"
+
+
 // -------------------------------------------------------------------------------
 //	TreeAdditionObj
 //
@@ -123,31 +131,6 @@
 
 
 - (void) awakeFromNib {
-    
-    /*
-     NSString *root = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook"];
-    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
-    
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSArray *filelist = [[NSArray alloc] init];
-    filelist = [fileManager contentsOfDirectoryAtPath:notesPath error:nil];
-    for (NSString *file in filelist) {
-        NSLog(@"%@", file);
-    }
-    
-    //NSString *filedir = @"notes/mac";
-    //NSString *filename = @"cocoa.rst";
-    NSString *filedir = @"source/_posts";
-    NSString *filename = @"2011-11-24-linux-shell-pipe.rst";
-    NSString *source = [NSString stringWithFormat:@"%@/%@/%@", root, filedir, filename];
-    NSString *dest = [NSTemporaryDirectory() stringByAppendingFormat:@"%@.htm", filename];
-    NSString *url = [NSString stringWithFormat:@"file://%@", dest];
-    NSArray *args = [NSArray arrayWithObjects:source, dest, nil];
-    
-    [[NSTask launchedTaskWithLaunchPath:@"/usr/local/bin/rst2html.py" arguments:args] waitUntilExit];
-    
-    [[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:url]]];
-     */
     
 	NSTableColumn *tableColumn = [myOutlineView tableColumnWithIdentifier:COLUMNID_NAME];
 	ImageAndTextCell *imageAndTextCell = [[ImageAndTextCell alloc] init];
@@ -267,20 +250,25 @@
 }
 
 
-- (void)addDevicesSection
+- (void)addNotebookSection
 {
 	// insert the "Devices" group at the top of our tree
-	[self addFolder:@"DEVICES"];
-	
-	// automatically add mounted and removable volumes to the "Devices" group
-	NSArray *mountedVols = [[NSWorkspace sharedWorkspace] mountedLocalVolumePaths];
-	if ([mountedVols count] > 0)
-	{
-		for (NSString *element in mountedVols) {
-            NSLog(@"%@", element);
-			[self addChild:element withName:nil selectParent:YES];
-        }
-	}
+	[self addFolder:@"笔记本"];
+    
+    /*
+    //NSString *filedir = @"notes/mac";
+    //NSString *filename = @"cocoa.rst";
+    NSString *filedir = @"source/_posts";
+    NSString *filename = @"2011-11-24-linux-shell-pipe.rst";
+    NSString *source = [NSString stringWithFormat:@"%@/%@/%@", root, filedir, filename];
+    NSString *dest = [NSTemporaryDirectory() stringByAppendingFormat:@"%@.htm", filename];
+    NSString *url = [NSString stringWithFormat:@"file://%@", dest];
+    NSArray *args = [NSArray arrayWithObjects:source, dest, nil];
+    
+    [[NSTask launchedTaskWithLaunchPath:@"/usr/local/bin/rst2html.py" arguments:args] waitUntilExit];
+    
+    [[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:url]]];
+     */
     
 	[self selectParentFromSelection];
 }
@@ -318,18 +306,14 @@
 	ChildNode *node = [[ChildNode alloc] initLeaf];
 	node.urlString = [treeAddition nodeURL];
     
-	if ([treeAddition nodeURL])
-	{
-		if ([[treeAddition nodeURL] length] > 0)
-		{
+	if ([treeAddition nodeURL]) {
+		if ([[treeAddition nodeURL] length] > 0) {
 			// the child to insert has a valid URL, use its display name as the node title
 			if ([treeAddition nodeName])
                 node.nodeTitle = [treeAddition nodeName];
 			else
                 node.nodeTitle = [[NSFileManager defaultManager] displayNameAtPath:[node urlString]];
-		}
-		else
-		{
+		} else {
 			// the child to insert will be an empty URL
             node.nodeTitle = @"Untitled";
             node.urlString = @"http://";
@@ -343,6 +327,101 @@
 	if ([treeAddition selectItsParent])
 		[self selectParentFromSelection];
 }
+
+
+// -------------------------------------------------------------------------------
+//	addEntries
+// -------------------------------------------------------------------------------
+- (void)addEntries:(NSDictionary *)entries
+{
+	NSEnumerator *entryEnum = [entries objectEnumerator];
+	
+	id entry;
+	while ((entry = [entryEnum nextObject]))
+	{
+		if ([entry isKindOfClass:[NSDictionary class]])
+		{
+			NSString *urlStr = [entry objectForKey:KEY_URL];
+			
+			if ([entry objectForKey:KEY_SEPARATOR])
+			{
+				// its a separator mark, we treat is as a leaf
+				[self addChild:nil withName:nil selectParent:YES];
+			}
+			else if ([entry objectForKey:KEY_FOLDER])
+			{
+				// its a file system based folder,
+				// we treat is as a leaf and show its contents in the NSCollectionView
+				NSString *folderName = [entry objectForKey:KEY_FOLDER];
+				[self addChild:urlStr withName:folderName selectParent:YES];
+			}
+			else if ([entry objectForKey:KEY_URL])
+			{
+				// its a leaf item with a URL
+				NSString *nameStr = [entry objectForKey:KEY_NAME];
+				[self addChild:urlStr withName:nameStr selectParent:YES];
+			}
+			else
+			{
+				// it's a generic container
+				NSString *folderName = [entry objectForKey:KEY_GROUP];
+				[self addFolder:folderName];
+				
+				// add its children
+				NSDictionary *newChildren = [entry objectForKey:KEY_ENTRIES];
+				[self addEntries:newChildren];
+				
+				[self selectParentFromSelection];
+			}
+		}
+	}
+	
+	// inserting children automatically expands its parent, we want to close it
+	if ([[treeController selectedNodes] count] > 0)
+	{
+		NSTreeNode *lastSelectedNode = [[treeController selectedNodes] objectAtIndex:0];
+		[myOutlineView collapseItem:lastSelectedNode];
+	}
+}
+
+// -------------------------------------------------------------------------------
+//	populateOutline
+//
+//	Populate the tree controller from disk-based dictionary (Outline.dict)
+// -------------------------------------------------------------------------------
+- (void)populateOutline
+{
+    NSString *root = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook"];
+
+    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
+    NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:@"笔记本", @"group", [self recurise:notesPath], @"entries", nil];
+
+    NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
+	[self addEntries:(NSDictionary *)entries];
+}
+
+- (NSArray *)recurise:(NSString *)dir{
+    NSMutableArray *arr = [[NSMutableArray alloc] initWithCapacity:100];
+
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSArray *filelist = [[NSArray alloc] init];
+    filelist = [fileManager contentsOfDirectoryAtPath:dir error:nil];
+
+    BOOL isDir = NO;
+    for (NSString *file in filelist) {
+        NSString *filePath = [dir stringByAppendingPathComponent:file];
+        [fileManager fileExistsAtPath:filePath isDirectory:(&isDir)];
+        if (isDir) {
+            NSArray *entries = [self recurise:filePath];
+            [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", nil]];
+        } else {
+            [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"name", filePath, @"url", nil]];
+        }
+        isDir = NO;
+    }
+    return arr;
+}
+
 
 
 // -------------------------------------------------------------------------------
@@ -502,9 +581,9 @@
 		
 	[myOutlineView setHidden:YES];	// hide the outline view - don't show it as we are building the contents
 	
-	[self addDevicesSection];		// add the "Devices" outline section
-	[self addPlacesSection];		// add the "Places" outline section
-	//[self populateOutline];			// add the disk-based outline content
+	//[self addNotebookSection];		// add the "Devices" outline section
+	//[self addPlacesSection];		// add the "Places" outline section
+	[self populateOutline];			// add the disk-based outline content
 	
 	buildingOutlineView = NO;		// we're done building our default tree
 	
@@ -544,7 +623,6 @@
 // -------------------------------------------------------------------------------
 - (BOOL)outlineView:(NSOutlineView *)outlineView shouldSelectItem:(id)item;
 {
-    NSLog(@"hello, world!");
 	// don't allow special group nodes (Devices and Places) to be selected
 	BaseNode *node = [item representedObject];
 	return (![self isSpecialGroup:node] && ![self isSeparator:node]);
@@ -629,7 +707,6 @@
 // -------------------------------------------------------------------------------
 - (void)outlineView:(NSOutlineView *)olv willDisplayCell:(NSCell*)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item
 {
-    NSLog(@"%@", item);
 	if ([[tableColumn identifier] isEqualToString:COLUMNID_NAME])
 	{
 		// we are displaying the single and only column
@@ -984,27 +1061,6 @@
 	}
 	
 	return result;
-}
-
-- (NSInteger)outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item {
-    if (item) {
-        return [[item children] count];
-    } else {
-        NSLog(@"%ld", [contents count]);
-        return 0;
-    }
-}
-
-- (BOOL)outlineView:(NSOutlineView *)outlineView isItemExpandable:(id)item {
-    return YES;
-}
-
-- (id)outlineView:(NSOutlineView *)outlineView child:(NSInteger)index ofItem:(id)item {
-    return nil;
-}
-
-- (id)outlineView:(NSOutlineView *)outlineView objectValueForTableColumn:(NSTableColumn *)tableColumn byItem:(id)item {
-    return nil;
 }
 
 @end

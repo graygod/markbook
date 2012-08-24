@@ -27,4 +27,5 @@
 @property (strong) NSView *currentView;
 @property (nonatomic) BOOL retargetWebView;
 
+- (NSArray *)recurise:(NSString *)dir;
 @end
