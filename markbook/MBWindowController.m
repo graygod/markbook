@@ -21,7 +21,7 @@
 
 #define UNTITLED_NAME			@"Untitled"		// default name for added folders and leafs
 
-#define HTTP_PREFIX				@"http://"
+#define HTTP_PREFIX				@"/"
 
 // default folder titles
 #define DEVICES_NAME			@"DEVICES"
@@ -145,6 +145,16 @@
 										withObject:nil];
     
 	[myOutlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
+    [myOutlineView setDoubleAction:@selector(openNote:)];
+}
+
+- (void) openNote:(id) sender {
+	NSArray	*selection = [treeController selectedNodes];	
+	if ([selection count] > 0) {
+        BaseNode *node = [[selection objectAtIndex:0] representedObject];
+        NSString *app = @"MacVim";
+        [[NSWorkspace sharedWorkspace] openFile:[node urlString] withApplication:app];
+    }
 }
 
 // -------------------------------------------------------------------------------
@@ -255,21 +265,6 @@
 	// insert the "Devices" group at the top of our tree
 	[self addFolder:@"笔记本"];
     
-    /*
-    //NSString *filedir = @"notes/mac";
-    //NSString *filename = @"cocoa.rst";
-    NSString *filedir = @"source/_posts";
-    NSString *filename = @"2011-11-24-linux-shell-pipe.rst";
-    NSString *source = [NSString stringWithFormat:@"%@/%@/%@", root, filedir, filename];
-    NSString *dest = [NSTemporaryDirectory() stringByAppendingFormat:@"%@.htm", filename];
-    NSString *url = [NSString stringWithFormat:@"file://%@", dest];
-    NSArray *args = [NSArray arrayWithObjects:source, dest, nil];
-    
-    [[NSTask launchedTaskWithLaunchPath:@"/usr/local/bin/rst2html.py" arguments:args] waitUntilExit];
-    
-    [[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:url]]];
-     */
-    
 	[self selectParentFromSelection];
 }
 
@@ -377,11 +372,13 @@
 	}
 	
 	// inserting children automatically expands its parent, we want to close it
+    /*
 	if ([[treeController selectedNodes] count] > 0)
 	{
 		NSTreeNode *lastSelectedNode = [[treeController selectedNodes] objectAtIndex:0];
 		[myOutlineView collapseItem:lastSelectedNode];
 	}
+     */
 }
 
 // -------------------------------------------------------------------------------
@@ -414,7 +411,7 @@
         if (isDir) {
             NSArray *entries = [self recurise:filePath];
             [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", nil]];
-        } else {
+        } else if ([[file pathExtension] isEqualToString:@"rst"]) {
             [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"name", filePath, @"url", nil]];
         }
         isDir = NO;
@@ -496,8 +493,17 @@
                 // this will tell our WebUIDelegate not to retarget first responder since some web pages force
                 // forus to their text fields - we want to keep our outline view in focus.
                 retargetWebView = YES;	
+
+                //NSString *filedir = @"notes/mac";
+                //NSString *filename = @"cocoa.rst";
+
+                NSString *dest = [NSTemporaryDirectory() stringByAppendingFormat:@"tmp.htm"];
+                NSString *dest_url = [NSString stringWithFormat:@"file://%@", dest];
+                NSArray *args = [NSArray arrayWithObjects:urlStr, dest, nil];
                 
-                [webView setMainFrameURL:urlStr];	// re-target to the new url
+                [[NSTask launchedTaskWithLaunchPath:@"/usr/local/bin/rst2html.py" arguments:args] waitUntilExit];
+                
+                [webView setMainFrameURL:dest_url];
             }
             /*
              else
@@ -687,18 +693,13 @@
 - (BOOL)outlineView:(NSOutlineView *)outlineView shouldEditTableColumn:(NSTableColumn *)tableColumn item:(id)item
 {
 	BOOL result = YES;
-	
 	item = [item representedObject];
-	if ([self isSpecialGroup:item])
-	{
+	if ([self isSpecialGroup:item]) {
 		result = NO; // don't allow special group nodes to be renamed
-	}
-	else
-	{
+	} else {
 		if ([[item urlString] isAbsolutePath])
-			result = NO;	// don't allow file system objects to be renamed
+			result = NO;	// allow rename a note
 	}
-	
 	return result;
 }
 
