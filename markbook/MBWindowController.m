@@ -98,7 +98,10 @@
 @synthesize dragNodesArray;
 @synthesize currentView;
 @synthesize retargetWebView;
-
+@synthesize stream;
+@synthesize lastEventId;
+@synthesize fm;
+@synthesize pathModificationDates;
 - (id) init {
     self = [super initWithWindowNibName:@"MBWindowController"];
     return self;
@@ -117,6 +120,9 @@
 		
 		urlImage = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericURLIcon)];
 		[urlImage setSize:NSMakeSize(16,16)];
+        
+        fm = [NSFileManager defaultManager];
+        pathModificationDates = [[NSMutableDictionary alloc] initWithCapacity:300];
     }
     
     return self;
@@ -146,6 +152,103 @@
     
 	[myOutlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
     [myOutlineView setDoubleAction:@selector(openNote:)];
+    [self initializeEventStream];
+}
+
+- (void) initializeEventStream {
+    NSString *root = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook"];
+    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
+    NSArray *pathsToWatch = [NSArray arrayWithObject:notesPath];
+    FSEventStreamContext context = {0, (__bridge void *)self, NULL, NULL, NULL};
+    NSTimeInterval latency = 0.1;
+    stream = FSEventStreamCreate(NULL, &fsevents_callback, &context, (__bridge CFArrayRef) pathsToWatch, [lastEventId unsignedLongValue], (CFAbsoluteTime) latency, kFSEventStreamCreateFlagUseCFTypes);
+    
+    FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+    FSEventStreamStart(stream);
+}
+
+void fsevents_callback(ConstFSEventStreamRef streamRef,
+                       void *userData,
+                       size_t numEvents,
+                       void *eventPaths,
+                       const FSEventStreamEventFlags eventFlags[],
+                       const FSEventStreamEventId eventIds[]) {
+    
+    MBWindowController *wc = (__bridge MBWindowController *)userData;
+    size_t i;
+    for (i=0; i<numEvents; i++) {
+        [wc addModifiedImagesAtPath:[(__bridge NSArray *)eventPaths objectAtIndex:i]];
+        wc.lastEventId = [NSNumber numberWithLong:eventIds[i]];
+    }
+}
+
+- (void) addModifiedImagesAtPath: (NSString *)path {
+    NSDate *modDate = [[NSDate alloc] init];
+    BOOL isDir;
+    
+    if ([fm fileExistsAtPath:path isDirectory:&isDir]) {
+    } else {
+        NSLog(@"%@", path);
+        return;
+    }
+    
+    NSDictionary *attributes = [fm attributesOfItemAtPath:path error:NULL];
+    modDate = [attributes objectForKey:NSFileModificationDate];
+    
+    if ([pathModificationDates objectForKey:path]) {
+        if ([modDate compare:[pathModificationDates objectForKey:path]] == NSOrderedDescending) {
+            [pathModificationDates setObject:modDate forKey:path];
+            // TODO: rebuild this path
+        }
+    } else {
+        //NSLog(@"%@", [NSTemporaryDirectory() stringByAppendingPathComponent:path]);
+        [fm createDirectoryAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:path] withIntermediateDirectories:YES attributes:NULL error:nil];
+        [pathModificationDates setObject:modDate forKey:path];
+    }
+
+    NSArray *nodes = [fm contentsOfDirectoryAtPath:path error:nil];
+    NSString *fullPath = nil;
+    
+    for(NSString *node in nodes) {
+        fullPath = [path stringByAppendingPathComponent:node];
+        [fm fileExistsAtPath:fullPath isDirectory:(&isDir)];
+        
+        NSDictionary *fileAttributes = [fm attributesOfItemAtPath:fullPath error:NULL];
+        modDate = [fileAttributes objectForKey:NSFileModificationDate];
+        
+        /* rst file */
+        if ([[node pathExtension] isEqualToString:@"rst"]) {
+            if ([pathModificationDates objectForKey:fullPath]) {
+                if ([modDate compare:[pathModificationDates objectForKey:fullPath]] == NSOrderedDescending) {
+                    [pathModificationDates setObject:modDate forKey:fullPath];
+                    [self rst2html:fullPath withSync:YES];
+                    [webView reload:self];
+                }
+            } else {
+                [self rst2html:fullPath withSync:NO];
+                [pathModificationDates setObject:modDate forKey:fullPath];
+            }
+        }
+    }
+    
+    //[self addChild:path withName:items selectParent:YES];
+}
+
+- (void) rst2html:(NSString *)path withSync:(BOOL)isSync {
+    NSString *dest = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:path]];
+    
+    NSString *parent_path = [dest stringByDeletingLastPathComponent];
+    if ( ! [fm fileExistsAtPath:parent_path isDirectory:nil]) {
+        [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
+    }
+    
+    NSArray *args = [NSArray arrayWithObjects:path, dest, nil];
+    //NSLog(@"%@", args);
+    if (isSync) {
+        [[NSTask launchedTaskWithLaunchPath:@"/usr/local/bin/rst2html.py" arguments:args] waitUntilExit];
+    } else {
+        [NSTask launchedTaskWithLaunchPath:@"/usr/local/bin/rst2html.py" arguments:args];
+    }
 }
 
 - (void) openNote:(id) sender {
@@ -307,7 +410,7 @@
 			if ([treeAddition nodeName])
                 node.nodeTitle = [treeAddition nodeName];
 			else
-                node.nodeTitle = [[NSFileManager defaultManager] displayNameAtPath:[node urlString]];
+                node.nodeTitle = [fm displayNameAtPath:[node urlString]];
 		} else {
 			// the child to insert will be an empty URL
             node.nodeTitle = @"Untitled";
@@ -397,29 +500,30 @@
 	[self addEntries:(NSDictionary *)entries];
 }
 
+- (IBAction)refreshAction:(id)sender {
+	[NSThread detachNewThreadSelector:	@selector(populateOutlineContents:)
+										toTarget:self		// we are the target
+										withObject:nil];
+}
+
 - (NSArray *)recurise:(NSString *)dir{
     NSMutableArray *arr = [[NSMutableArray alloc] initWithCapacity:100];
-
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSArray *filelist = [[NSArray alloc] init];
-    filelist = [fileManager contentsOfDirectoryAtPath:dir error:nil];
-
+    
     BOOL isDir = NO;
-    for (NSString *file in filelist) {
+    for (NSString *file in [fm contentsOfDirectoryAtPath:dir error:nil]) {
         NSString *filePath = [dir stringByAppendingPathComponent:file];
-        [fileManager fileExistsAtPath:filePath isDirectory:(&isDir)];
+        [fm fileExistsAtPath:filePath isDirectory:(&isDir)];
         if (isDir) {
             NSArray *entries = [self recurise:filePath];
             [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", nil]];
         } else if ([[file pathExtension] isEqualToString:@"rst"]) {
+            //NSLog(@"%@", filePath);
             [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"name", filePath, @"url", nil]];
         }
         isDir = NO;
     }
     return arr;
 }
-
-
 
 // -------------------------------------------------------------------------------
 //	addChild:url:withName:selectParent
@@ -497,13 +601,14 @@
                 //NSString *filedir = @"notes/mac";
                 //NSString *filename = @"cocoa.rst";
 
-                NSString *dest = [NSTemporaryDirectory() stringByAppendingFormat:@"tmp.htm"];
-                NSString *dest_url = [NSString stringWithFormat:@"file://%@", dest];
-                NSArray *args = [NSArray arrayWithObjects:urlStr, dest, nil];
+                //[urlStr stringByDeletingLastPathComponent]
                 
-                [[NSTask launchedTaskWithLaunchPath:@"/usr/local/bin/rst2html.py" arguments:args] waitUntilExit];
+                NSString *dest_path = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]];
                 
-                [webView setMainFrameURL:dest_url];
+                if ( ! [fm fileExistsAtPath:dest_path isDirectory:nil]) {
+                    [self rst2html:urlStr withSync:YES];
+                }
+                [webView setMainFrameURL:[NSString stringWithFormat:@"file://%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]]];
             }
             /*
              else
@@ -939,7 +1044,7 @@
 			ChildNode *node = [[ChildNode alloc] init];
 
 			NSURL *url = [NSURL fileURLWithPath:[fileNames objectAtIndex:i]];
-            NSString *name = [[NSFileManager defaultManager] displayNameAtPath:[url path]];
+            NSString *name = [fm displayNameAtPath:[url path]];
             node.isLeaf = YES;
 
             node.nodeTitle = name;
@@ -964,7 +1069,7 @@
 		if ([url isFileURL])
 		{
 			// url is file-based, use it's display name
-			NSString *name = [[NSFileManager defaultManager] displayNameAtPath:[url path]];
+			NSString *name = [fm displayNameAtPath:[url path]];
             node.nodeTitle = name;
             node.urlString = [url path];
 		}

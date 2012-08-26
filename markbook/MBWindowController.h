@@ -27,5 +27,13 @@
 @property (strong) NSView *currentView;
 @property (nonatomic) BOOL retargetWebView;
 
-- (NSArray *)recurise:(NSString *)dir;
+@property (strong, nonatomic) NSNumber *lastEventId;
+@property (nonatomic) FSEventStreamRef stream;
+@property (strong, nonatomic) NSFileManager *fm;
+@property (strong, nonatomic) NSMutableDictionary* pathModificationDates;
+
+- (IBAction)refreshAction:(id)sender;
+
+- (void) addModifiedImagesAtPath: (NSString *)path;
+    - (NSArray *)recurise:(NSString *)dir;
 @end
