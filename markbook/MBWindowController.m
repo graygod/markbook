@@ -227,18 +227,11 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                     [webView reload:self];
                 }
             } else {
-                /*
-                [NSThread detachNewThreadSelector:	@selector(rst2html:withSync:)
-										toTarget:self		// we are the target
-										withObject:nil];
-                 */
-                
-                [self rst2html:fullPath withSync:NO];
+                //[self rst2html:fullPath withSync:NO];
                 [pathModificationDates setObject:modDate forKey:fullPath];
             }
         }
     }
-    
     //[self addChild:path withName:items selectParent:YES];
 }
 
@@ -256,13 +249,15 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
     [task setLaunchPath:@"/usr/local/bin/rst2html.py"];
     [task setArguments:args];
-    if (isSync) {
-        NSLog(@"wait until exit");
-        [task waitUntilExit];
-    } else {
-        NSLog(@"launch");
-    }
     [task launch];
+    if (isSync) {
+        [task waitUntilExit];
+        int status = [task terminationStatus];
+        if (status == 0)
+            NSLog(@"Task succeeded.");
+        else
+            NSLog(@"Task failed.");
+    }
 }
 
 - (void) openNote:(id) sender {
@@ -621,10 +616,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                 NSString *dest_path = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]];
                 
                 if ( ! [fm fileExistsAtPath:dest_path isDirectory:nil]) {
-                    NSLog(@"first generate html file");
                     [self rst2html:urlStr withSync:YES];
                 }
-                NSLog(@"%@", [[NSString stringWithFormat:@"file://%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);
+                //NSLog(@"%@", [[NSString stringWithFormat:@"file://%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);
                 [webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
             }
             /*
