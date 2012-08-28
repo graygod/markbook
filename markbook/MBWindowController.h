@@ -31,6 +31,7 @@
 @property (nonatomic) FSEventStreamRef stream;
 @property (strong, nonatomic) NSFileManager *fm;
 @property (strong, nonatomic) NSMutableDictionary* pathModificationDates;
+@property (strong, nonatomic) NSString* root;
 
 - (IBAction)refreshAction:(id)sender;
 

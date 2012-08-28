@@ -102,6 +102,8 @@
 @synthesize lastEventId;
 @synthesize fm;
 @synthesize pathModificationDates;
+@synthesize root;
+
 - (id) init {
     self = [super initWithWindowNibName:@"MBWindowController"];
     return self;
@@ -156,7 +158,7 @@
 }
 
 - (void) initializeEventStream {
-    NSString *root = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook"];
+    root = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook"];
     NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
     NSArray *pathsToWatch = [NSArray arrayWithObject:notesPath];
     FSEventStreamContext context = {0, (__bridge void *)self, NULL, NULL, NULL};
@@ -225,6 +227,12 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                     [webView reload:self];
                 }
             } else {
+                /*
+                [NSThread detachNewThreadSelector:	@selector(rst2html:withSync:)
+										toTarget:self		// we are the target
+										withObject:nil];
+                 */
+                
                 [self rst2html:fullPath withSync:NO];
                 [pathModificationDates setObject:modDate forKey:fullPath];
             }
@@ -236,6 +244,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 
 - (void) rst2html:(NSString *)path withSync:(BOOL)isSync {
     NSString *dest = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:path]];
+    //NSLog(@"%@", dest);
     
     NSString *parent_path = [dest stringByDeletingLastPathComponent];
     if ( ! [fm fileExistsAtPath:parent_path isDirectory:nil]) {
@@ -243,12 +252,17 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     }
     
     NSArray *args = [NSArray arrayWithObjects:path, dest, nil];
-    //NSLog(@"%@", args);
+    NSTask *task = [[NSTask alloc] init];
+    [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
+    [task setLaunchPath:@"/usr/local/bin/rst2html.py"];
+    [task setArguments:args];
     if (isSync) {
-        [[NSTask launchedTaskWithLaunchPath:@"/usr/local/bin/rst2html.py" arguments:args] waitUntilExit];
+        NSLog(@"wait until exit");
+        [task waitUntilExit];
     } else {
-        [NSTask launchedTaskWithLaunchPath:@"/usr/local/bin/rst2html.py" arguments:args];
+        NSLog(@"launch");
     }
+    [task launch];
 }
 
 - (void) openNote:(id) sender {
@@ -491,8 +505,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 // -------------------------------------------------------------------------------
 - (void)populateOutline
 {
-    NSString *root = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook"];
-
     NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
     NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:@"笔记本", @"group", [self recurise:notesPath], @"entries", nil];
 
@@ -514,6 +526,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         NSString *filePath = [dir stringByAppendingPathComponent:file];
         [fm fileExistsAtPath:filePath isDirectory:(&isDir)];
         if (isDir) {
+            if ([file isEqualToString:@".git"]) {
+                continue;
+            }
             NSArray *entries = [self recurise:filePath];
             [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", nil]];
         } else if ([[file pathExtension] isEqualToString:@"rst"]) {
@@ -606,9 +621,11 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                 NSString *dest_path = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]];
                 
                 if ( ! [fm fileExistsAtPath:dest_path isDirectory:nil]) {
+                    NSLog(@"first generate html file");
                     [self rst2html:urlStr withSync:YES];
                 }
-                [webView setMainFrameURL:[NSString stringWithFormat:@"file://%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]]];
+                NSLog(@"%@", [[NSString stringWithFormat:@"file://%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);
+                [webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
             }
             /*
              else

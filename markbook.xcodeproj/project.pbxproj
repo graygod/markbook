@@ -26,7 +26,6 @@
 		DAC312BB15E5C4D400261862 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAC312BA15E5C4D400261862 /* WebKit.framework */; };
 		DAC3132815E5DE3B00261862 /* MBWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = DAC3132615E5DE3B00261862 /* MBWindowController.m */; };
 		DAC3132915E5DE3B00261862 /* MBWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = DAC3132715E5DE3B00261862 /* MBWindowController.xib */; };
-		DAE494B815E89979000FC54A /* apple&jobs.png in Resources */ = {isa = PBXBuildFile; fileRef = DAE494B715E89979000FC54A /* apple&jobs.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,7 +73,6 @@
 		DAC3132515E5DE3B00261862 /* MBWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBWindowController.h; sourceTree = "<group>"; };
 		DAC3132615E5DE3B00261862 /* MBWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBWindowController.m; sourceTree = "<group>"; };
 		DAC3132715E5DE3B00261862 /* MBWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MBWindowController.xib; sourceTree = "<group>"; };
-		DAE494B715E89979000FC54A /* apple&jobs.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "apple&jobs.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -167,7 +165,6 @@
 				DAC3132515E5DE3B00261862 /* MBWindowController.h */,
 				DAC3132615E5DE3B00261862 /* MBWindowController.m */,
 				DAC3132715E5DE3B00261862 /* MBWindowController.xib */,
-				DAE494B715E89979000FC54A /* apple&jobs.png */,
 				DAC3129B15E5C1CF00261862 /* markbook.xcdatamodeld */,
 				DAC3128A15E5C1CF00261862 /* Supporting Files */,
 			);
@@ -281,7 +278,6 @@
 				DAC3129415E5C1CF00261862 /* Credits.rtf in Resources */,
 				DAC3129A15E5C1CF00261862 /* MainMenu.xib in Resources */,
 				DAC3132915E5DE3B00261862 /* MBWindowController.xib in Resources */,
-				DAE494B815E89979000FC54A /* apple&jobs.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
