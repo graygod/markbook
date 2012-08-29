@@ -201,6 +201,16 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         if ([modDate compare:[pathModificationDates objectForKey:path]] == NSOrderedDescending) {
             [pathModificationDates setObject:modDate forKey:path];
             // TODO: rebuild this path
+            //NSIndexPath *preIndexPath = [treeController selectionIndexPath];
+            NSIndexPath *indexPath = [self indexPathOfString:path];
+            //[treeController setSelectionIndexPath:indexPath];
+            //[self selectParentFromSelection];
+            [treeController removeObjectAtArrangedObjectIndexPath:indexPath];
+
+            NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:path], @"group", [self recurise:path], @"entries", path, KEY_URL, nil];
+            //NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:path], @"group", [self recurise:path], @"entries", nil];
+            NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
+            [self addEntries:entries atIndexPath:indexPath];
         }
     } else {
         //NSLog(@"%@", [NSTemporaryDirectory() stringByAppendingPathComponent:path]);
@@ -236,12 +246,17 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 }
 
 - (void) rst2html:(NSString *)path withSync:(BOOL)isSync {
+    BOOL isDir;
     NSString *dest = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:path]];
     //NSLog(@"%@", dest);
     
     NSString *parent_path = [dest stringByDeletingLastPathComponent];
-    if ( ! [fm fileExistsAtPath:parent_path isDirectory:nil]) {
+    if ( ! [fm fileExistsAtPath:parent_path isDirectory:&isDir]) {
         [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
+    }
+
+    if(isDir) {
+        return;
     }
     
     NSArray *args = [NSArray arrayWithObjects:path, dest, nil];
@@ -258,6 +273,28 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         else
             NSLog(@"Task failed.");
     }
+}
+
+- (NSIndexPath*)indexPathOfString:(NSString *)path
+{
+    return [self indexPathOfString:path inNodes:[[treeController arrangedObjects] childNodes]];
+}
+
+- (NSIndexPath*)indexPathOfString:(NSString *)path inNodes:(NSArray*)nodes
+{
+    for(NSTreeNode* node in nodes)
+    {
+        if([[[node representedObject] urlString] isEqualToString:path]) {
+            return [node indexPath];
+        }
+        if([[node childNodes] count])
+        {
+            NSIndexPath* indexPath = [self indexPathOfString:path inNodes:[node childNodes]];
+            if(indexPath)
+                return indexPath;
+        }
+    }
+    return nil;
 }
 
 - (void) openNote:(id) sender {
@@ -314,71 +351,66 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 }
 
 // -------------------------------------------------------------------------------
+//	addFolder:folderName
+// -------------------------------------------------------------------------------
+- (void)addFolder:(NSString *)folderName withURL:(NSString *)url atIndexPath:(NSIndexPath *)indexPath
+{
+	TreeAdditionObj *treeObjInfo = [[TreeAdditionObj alloc] initWithURL:url withName:folderName selectItsParent:NO];
+	
+	if (buildingOutlineView) {
+		// add the folder to the tree controller, but on the main thread to avoid lock ups
+        [self performSelectorOnMainThread:@selector(performAddFolder:) withObject:[NSArray arrayWithObjects:treeObjInfo, @"", nil] waitUntilDone:YES];
+	} else {
+        [self performAddFolder:[NSArray arrayWithObjects:treeObjInfo, indexPath, nil]];
+	}
+}
+
+// -------------------------------------------------------------------------------
 //	performAddFolder:treeAddition
 // -------------------------------------------------------------------------------
-- (void)performAddFolder:(TreeAdditionObj *)treeAddition
-{
+- (void)performAddFolder:(NSArray *)array {
+    TreeAdditionObj *treeAddition = [array objectAtIndex:0];
+    NSIndexPath *myIndexPath = [array objectAtIndex:1];
+    if ( ! [myIndexPath isEqual:@""]) {
+        ChildNode *node = [[ChildNode alloc] init];
+        node.nodeTitle = [treeAddition nodeName];
+        node.urlString = [treeAddition nodeURL];
+        
+        // the user is adding a child node, tell the controller directly
+        [treeController insertObject:node atArrangedObjectIndexPath:myIndexPath];
+        // in insertObject action, rst2html will be called!
+        return;
+    }
 	// NSTreeController inserts objects using NSIndexPath, so we need to calculate this
 	NSIndexPath *indexPath = nil;
 	
 	// if there is no selection, we will add a new group to the end of the contents array
-	if ([[treeController selectedObjects] count] == 0)
-	{
+	if ([[treeController selectedObjects] count] == 0) {
 		// there's no selection so add the folder to the top-level and at the end
 		indexPath = [NSIndexPath indexPathWithIndex:[contents count]];
-	}
-	else
-	{
+	} else {
 		// get the index of the currently selected node, then add the number its children to the path -
 		// this will give us an index which will allow us to add a node to the end of the currently selected node's children array.
 		//
 		indexPath = [treeController selectionIndexPath];
-		if ([[[treeController selectedObjects] objectAtIndex:0] isLeaf])
-		{
+		if ([[[treeController selectedObjects] objectAtIndex:0] isLeaf]) {
 			// user is trying to add a folder on a selected child,
 			// so deselect child and select its parent for addition
 			[self selectParentFromSelection];
-		}
-		else
-		{
+		} else {
 			indexPath = [indexPath indexPathByAddingIndex:[[[[treeController selectedObjects] objectAtIndex:0] children] count]];
 		}
 	}
 	
 	ChildNode *node = [[ChildNode alloc] init];
     node.nodeTitle = [treeAddition nodeName];
+    node.urlString = [treeAddition nodeURL];
 	
 	// the user is adding a child node, tell the controller directly
 	[treeController insertObject:node atArrangedObjectIndexPath:indexPath];
 }
 
 
-// -------------------------------------------------------------------------------
-//	addFolder:folderName
-// -------------------------------------------------------------------------------
-- (void)addFolder:(NSString *)folderName
-{
-	TreeAdditionObj *treeObjInfo = [[TreeAdditionObj alloc] initWithURL:nil withName:folderName selectItsParent:NO];
-	
-	if (buildingOutlineView)
-	{
-		// add the folder to the tree controller, but on the main thread to avoid lock ups
-		[self performSelectorOnMainThread:@selector(performAddFolder:) withObject:treeObjInfo waitUntilDone:YES];
-	}
-	else
-	{
-		[self performAddFolder:treeObjInfo];
-	}
-}
-
-
-- (void)addNotebookSection
-{
-	// insert the "Devices" group at the top of our tree
-	[self addFolder:@"笔记本"];
-    
-	[self selectParentFromSelection];
-}
 
 // -------------------------------------------------------------------------------
 //	performAddChild:treeAddition
@@ -435,12 +467,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 		[self selectParentFromSelection];
 }
 
-
-// -------------------------------------------------------------------------------
-//	addEntries
-// -------------------------------------------------------------------------------
-- (void)addEntries:(NSDictionary *)entries
-{
+- (void)addEntries:(NSDictionary *)entries atIndexPath:(NSIndexPath *)indexPath {
 	NSEnumerator *entryEnum = [entries objectEnumerator];
 	
 	id entry;
@@ -461,24 +488,20 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 				// we treat is as a leaf and show its contents in the NSCollectionView
 				NSString *folderName = [entry objectForKey:KEY_FOLDER];
 				[self addChild:urlStr withName:folderName selectParent:YES];
-			}
-			else if ([entry objectForKey:KEY_URL])
-			{
-				// its a leaf item with a URL
-				NSString *nameStr = [entry objectForKey:KEY_NAME];
-				[self addChild:urlStr withName:nameStr selectParent:YES];
-			}
-			else
-			{
+			} else if ([entry objectForKey:KEY_GROUP]) {
 				// it's a generic container
 				NSString *folderName = [entry objectForKey:KEY_GROUP];
-				[self addFolder:folderName];
+                [self addFolder:folderName withURL:urlStr atIndexPath:indexPath];
 				
 				// add its children
 				NSDictionary *newChildren = [entry objectForKey:KEY_ENTRIES];
-				[self addEntries:newChildren];
+                [self addEntries:newChildren atIndexPath:@""];
 				
 				[self selectParentFromSelection];
+			} else {
+				// its a leaf item with a URL
+				NSString *nameStr = [entry objectForKey:KEY_NAME];
+				[self addChild:urlStr withName:nameStr selectParent:YES];
 			}
 		}
 	}
@@ -491,20 +514,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 		[myOutlineView collapseItem:lastSelectedNode];
 	}
      */
-}
-
-// -------------------------------------------------------------------------------
-//	populateOutline
-//
-//	Populate the tree controller from disk-based dictionary (Outline.dict)
-// -------------------------------------------------------------------------------
-- (void)populateOutline
-{
-    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
-    NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:@"笔记本", @"group", [self recurise:notesPath], @"entries", nil];
-
-    NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
-	[self addEntries:(NSDictionary *)entries];
 }
 
 - (IBAction)refreshAction:(id)sender {
@@ -525,9 +534,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                 continue;
             }
             NSArray *entries = [self recurise:filePath];
-            [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", nil]];
+            filePath = [NSString stringWithFormat:@"%@/", filePath];
+            [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", filePath, @"url", nil]];
         } else if ([[file pathExtension] isEqualToString:@"rst"]) {
-            //NSLog(@"%@", filePath);
             [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"name", filePath, @"url", nil]];
         }
         isDir = NO;
@@ -557,25 +566,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	}
 	
 }
-
-// -------------------------------------------------------------------------------
-//	addPlacesSection
-// -------------------------------------------------------------------------------
-- (void)addPlacesSection
-{
-	// add the "Places" section
-	[self addFolder:@"PlACES"];
-	
-	// add its children
-	[self addChild:NSHomeDirectory() withName:nil selectParent:YES];
-	[self addChild:[NSHomeDirectory() stringByAppendingPathComponent:@"Pictures"] withName:nil selectParent:YES];
-	[self addChild:[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] withName:nil selectParent:YES];
-	[self addChild:@"/Applications" withName:nil selectParent:YES];
-    
-	[self selectParentFromSelection];
-}
-
-
 
 // -------------------------------------------------------------------------------
 //	changeItemView
@@ -700,15 +690,14 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 - (void)populateOutlineContents:(id)inObject
 {
 	buildingOutlineView = YES;		// indicate to ourselves we are building the default tree at startup
-		
 	[myOutlineView setHidden:YES];	// hide the outline view - don't show it as we are building the contents
 	
-	//[self addNotebookSection];		// add the "Devices" outline section
-	//[self addPlacesSection];		// add the "Places" outline section
-	[self populateOutline];			// add the disk-based outline content
+    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
+    NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:@"笔记本", @"group", [self recurise:notesPath], @"entries", nil];
+    NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
+    [self addEntries:(NSDictionary *)entries atIndexPath:@""];
 	
 	buildingOutlineView = NO;		// we're done building our default tree
-	
 	// remove the current selection
 	NSArray *selection = [treeController selectionIndexPaths];
 	[treeController removeSelectionIndexPaths:selection];
