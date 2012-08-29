@@ -248,16 +248,15 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 
 - (void) rst2html:(NSString *)path withSync:(BOOL)isSync {
     BOOL isDir;
-    NSString *dest = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:path]];
-    //NSLog(@"%@", dest);
-    
-    NSString *parent_path = [dest stringByDeletingLastPathComponent];
-    if ( ! [fm fileExistsAtPath:parent_path isDirectory:&isDir]) {
-        [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
+    [fm fileExistsAtPath:path isDirectory:&isDir];
+    if (isDir) {
+        return;
     }
 
-    if(isDir) {
-        return;
+    NSString *dest = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:path]];
+    NSString *parent_path = [dest stringByDeletingLastPathComponent];
+    if ( ! [fm fileExistsAtPath:parent_path isDirectory:nil]) {
+        [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
     }
     
     NSArray *args = [NSArray arrayWithObjects:path, dest, nil];
@@ -608,6 +607,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                 NSString *dest_path = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]];
                 
                 if ( ! [fm fileExistsAtPath:dest_path isDirectory:nil]) {
+                    //NSLog(@"url file is not existed. generating");
                     [self rst2html:urlStr withSync:YES];
                 }
                 //NSLog(@"%@", [[NSString stringWithFormat:@"file://%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);
