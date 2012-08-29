@@ -202,6 +202,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
             [pathModificationDates setObject:modDate forKey:path];
             // TODO: rebuild this path
             //NSIndexPath *preIndexPath = [treeController selectionIndexPath];
+            //NSLog(@"changed path: %@", path);
             NSIndexPath *indexPath = [self indexPathOfString:path];
             //[treeController setSelectionIndexPath:indexPath];
             //[self selectParentFromSelection];
@@ -284,6 +285,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 {
     for(NSTreeNode* node in nodes)
     {
+        //NSLog(@"%@", [[node representedObject] urlString]);
         if([[[node representedObject] urlString] isEqualToString:path]) {
             return [node indexPath];
         }
@@ -692,8 +694,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	buildingOutlineView = YES;		// indicate to ourselves we are building the default tree at startup
 	[myOutlineView setHidden:YES];	// hide the outline view - don't show it as we are building the contents
 	
-    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
-    NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:@"笔记本", @"group", [self recurise:notesPath], @"entries", nil];
+    NSString *notesPath = [NSString stringWithFormat:@"%@/", [root stringByAppendingPathComponent:@"notes"]];
+    NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:notesPath], @"group", [self recurise:notesPath], @"entries", notesPath, KEY_URL, nil];
     NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
     [self addEntries:(NSDictionary *)entries atIndexPath:@""];
 	
