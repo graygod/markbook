@@ -201,17 +201,29 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         if ([modDate compare:[pathModificationDates objectForKey:path]] == NSOrderedDescending) {
             [pathModificationDates setObject:modDate forKey:path];
             // TODO: rebuild this path
-            //NSIndexPath *preIndexPath = [treeController selectionIndexPath];
+            NSString *prePath;
+            if ([[treeController selectedNodes] count] > 0) {
+                 prePath = [[[[treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
+            }
             //NSLog(@"changed path: %@", path);
             NSIndexPath *indexPath = [self indexPathOfString:path];
-            //[treeController setSelectionIndexPath:indexPath];
             //[self selectParentFromSelection];
             [treeController removeObjectAtArrangedObjectIndexPath:indexPath];
 
             NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:path], @"group", [self recurise:path], @"entries", path, KEY_URL, nil];
             //NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:path], @"group", [self recurise:path], @"entries", nil];
             NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
-            [self addEntries:entries atIndexPath:indexPath];
+            
+            if (buildingOutlineView) {
+                [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
+            } else {
+                [myOutlineView setHidden:YES];
+                [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
+                if (prePath) {
+                    [treeController setSelectionIndexPath:[self indexPathOfString:prePath]];
+                }
+                [myOutlineView setHidden:NO];
+            }
         }
     } else {
         //NSLog(@"%@", [NSTemporaryDirectory() stringByAppendingPathComponent:path]);
