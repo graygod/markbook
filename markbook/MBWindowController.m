@@ -520,19 +520,14 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	}
 	
 	// inserting children automatically expands its parent, we want to close it
-    /*
 	if ([[treeController selectedNodes] count] > 0)
 	{
 		NSTreeNode *lastSelectedNode = [[treeController selectedNodes] objectAtIndex:0];
+        if ([[fm displayNameAtPath:[[lastSelectedNode representedObject] urlString]] isEqualToString:@"notes"]) {
+            return;
+        }
 		[myOutlineView collapseItem:lastSelectedNode];
 	}
-     */
-}
-
-- (IBAction)refreshAction:(id)sender {
-	[NSThread detachNewThreadSelector:	@selector(populateOutlineContents:)
-										toTarget:self		// we are the target
-										withObject:nil];
 }
 
 - (NSArray *)recurise:(NSString *)dir{
