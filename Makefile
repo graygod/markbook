@@ -1,12 +1,15 @@
-default: xcode export
+default: xcode dmg install
 
 xcode:
 	xcodebuild
 
 dmg:
-	-@mkdir ~/Downloads/MarkBook
-	cp -rf ~/Library/Developer/Xcode/DerivedData/MarkBook-gbkhbwckcloccjfnsqkfvhjhmnoy/Build/Products/Debug/MarkBook.app ~/Downloads/MarkBook
-	ln -sf /Applications ~/Downloads/MarkBook
-	#mkdmg.sh . ~/Downloads/MarkBook/ ~/Downloads MarkBook
+	-@mkdir /tmp/MarkBook
+	rm -rf /tmp/MarkBook/MarkBook.app
+	cp -rf build/Release/markbook.app /tmp/MarkBook/MarkBook.app
+	ln -sf /Applications /tmp/MarkBook
 	-@rm -rf ~/Downloads/MarkBook.dmg
-	hdiutil create ~/Downloads/MarkBook.dmg -srcfolder ~/Downloads/MarkBook
+	hdiutil create ~/Downloads/MarkBook.dmg -srcfolder /tmp/MarkBook
+
+install:
+	sudo cp -rf ~/Downloads/MarkBook/MarkBook.app /Applications
