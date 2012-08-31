@@ -129,11 +129,11 @@
         pathModificationDates = [[NSMutableDictionary alloc] initWithCapacity:300];
         
         
-        NSString *notes_path = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook/notes"];
+        NSString *notes_path = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook/notes"];
         if ( ! [fm fileExistsAtPath:notes_path]) {
             [fm createDirectoryAtPath:notes_path withIntermediateDirectories:YES attributes:NULL error:nil];
-            NSLog(@"%@", [EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"]);
-            NSLog(@"%@", [notes_path stringByAppendingPathComponent:@"welcome.rst"]);
+            //NSLog(@"%@", [EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"]);
+            //NSLog(@"%@", [notes_path stringByAppendingPathComponent:@"welcome.rst"]);
             [fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"] toPath:[notes_path stringByAppendingPathComponent:@"welcome.rst"] error:nil];
         }
         

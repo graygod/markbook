@@ -27,3 +27,4 @@ export: pull
 	find .|grep pyc$$|xargs rm -f
 	rm -rf ~/Downloads/myeggs
 	cp -r . ~/Downloads/myeggs
+	cp -rf ~/Downloads/myeggs ~/proj/amoblin/markbook/
