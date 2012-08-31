@@ -1,10 +1,22 @@
 ====
-你好
+欢迎
 ====
 
-:date: 2012-08-32
-:title: title
+:author: amoblin
+:date: 2012-08-31
+:title: 欢迎页
 :publish: YES
+
+STEP 1
+=======
+
+通过任何方法在当前目录添加文件夹，MarkBook会同步显示。
+
+添加后缀为rst的restructureText文件，MarkBook会显示对应的HTML页面。
+
+双击rst文件可使用编辑器打开rst文件。
+
+下面是c代码样例：
 
 .. code-block:: c
 

@@ -23,7 +23,7 @@ pull:
 clean:
 	rm -rf bin develop-eggs eggs parts
 
-export:
+export: pull
 	find .|grep pyc$$|xargs rm -f
 	rm -rf ~/Downloads/myeggs
 	cp -r . ~/Downloads/myeggs

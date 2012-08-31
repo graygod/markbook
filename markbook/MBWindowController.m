@@ -12,6 +12,8 @@
 #import "SeparatorCell.h"
 
 
+#define EGGS_ROOT               @"/Applications/MarkBook.app/Contents/Resources/myeggs"
+
 #define COLUMNID_NAME			@"NameColumn"	// the single column name in our outline view
 #define INITIAL_INFODICT		@"Outline"		// name of the dictionary file to populate our outline view
 
@@ -125,6 +127,16 @@
         
         fm = [NSFileManager defaultManager];
         pathModificationDates = [[NSMutableDictionary alloc] initWithCapacity:300];
+        
+        
+        NSString *notes_path = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook/notes"];
+        if ( ! [fm fileExistsAtPath:notes_path]) {
+            [fm createDirectoryAtPath:notes_path withIntermediateDirectories:YES attributes:NULL error:nil];
+            NSLog(@"%@", [EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"]);
+            NSLog(@"%@", [notes_path stringByAppendingPathComponent:@"welcome.rst"]);
+            [fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"] toPath:[notes_path stringByAppendingPathComponent:@"welcome.rst"] error:nil];
+        }
+        
     }
     
     return self;
@@ -272,11 +284,10 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     }
     
     NSTask *task = [[NSTask alloc] init];
-    NSString *pre = @"/Applications/MarkBook.app/Contents/Resources/myeggs/bin";
-    NSString *rst2html_command = [pre stringByAppendingPathComponent:@"rst2html.py"];
+    NSString *rst2html_command = [EGGS_ROOT stringByAppendingPathComponent:@"bin/rst2html.py"];
     NSArray *args = [NSArray arrayWithObjects:rst2html_command, path, dest, nil];
     [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
-    [task setLaunchPath:[pre stringByAppendingPathComponent:@"mypython"]];
+    [task setLaunchPath:[EGGS_ROOT stringByAppendingPathComponent:@"bin/mypython"]];
     [task setArguments:args];
     [task launch];
     if (isSync) {
