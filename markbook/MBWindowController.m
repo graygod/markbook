@@ -190,7 +190,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     
     if ([fm fileExistsAtPath:path isDirectory:&isDir]) {
     } else {
-        NSLog(@"%@", path);
+        //NSLog(@"%@", path);
         return;
     }
     
@@ -271,10 +271,12 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
     }
     
-    NSArray *args = [NSArray arrayWithObjects:path, dest, nil];
     NSTask *task = [[NSTask alloc] init];
+    NSString *pre = @"/Applications/MarkBook.app/Contents/Resources/myeggs/bin";
+    NSString *rst2html_command = [pre stringByAppendingPathComponent:@"rst2html.py"];
+    NSArray *args = [NSArray arrayWithObjects:rst2html_command, path, dest, nil];
     [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
-    [task setLaunchPath:@"/usr/local/bin/rst2html.py"];
+    [task setLaunchPath:[pre stringByAppendingPathComponent:@"mypython"]];
     [task setArguments:args];
     [task launch];
     if (isSync) {
@@ -520,14 +522,16 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	}
 	
 	// inserting children automatically expands its parent, we want to close it
-	if ([[treeController selectedNodes] count] > 0)
-	{
-		NSTreeNode *lastSelectedNode = [[treeController selectedNodes] objectAtIndex:0];
-        if ([[fm displayNameAtPath:[[lastSelectedNode representedObject] urlString]] isEqualToString:@"notes"]) {
-            return;
+    if (buildingOutlineView) {
+        if ([[treeController selectedNodes] count] > 0)
+        {
+            NSTreeNode *lastSelectedNode = [[treeController selectedNodes] objectAtIndex:0];
+            if ([[fm displayNameAtPath:[[lastSelectedNode representedObject] urlString]] isEqualToString:@"notes"]) {
+                return;
+            }
+            [myOutlineView collapseItem:lastSelectedNode];
         }
-		[myOutlineView collapseItem:lastSelectedNode];
-	}
+    }
 }
 
 - (NSArray *)recurise:(NSString *)dir{

@@ -26,6 +26,7 @@
 		DAC312BB15E5C4D400261862 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAC312BA15E5C4D400261862 /* WebKit.framework */; };
 		DAC3132815E5DE3B00261862 /* MBWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = DAC3132615E5DE3B00261862 /* MBWindowController.m */; };
 		DAC3132915E5DE3B00261862 /* MBWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = DAC3132715E5DE3B00261862 /* MBWindowController.xib */; };
+		DAF4BF9315F04B1C00AFE2E4 /* myeggs in Resources */ = {isa = PBXBuildFile; fileRef = DAF4BF9215F04B1C00AFE2E4 /* myeggs */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,23 +50,23 @@
 		DA16B3A315E665CB00D133C9 /* ImageAndTextCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageAndTextCell.m; sourceTree = "<group>"; };
 		DA16B3A515E66A0500D133C9 /* SeparatorCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SeparatorCell.h; sourceTree = "<group>"; };
 		DA16B3A615E66A0500D133C9 /* SeparatorCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SeparatorCell.m; sourceTree = "<group>"; };
-		DAC3127F15E5C1CF00261862 /* markbook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = markbook.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DAC3127F15E5C1CF00261862 /* MarkBook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MarkBook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAC3128315E5C1CF00261862 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		DAC3128615E5C1CF00261862 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		DAC3128715E5C1CF00261862 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		DAC3128815E5C1CF00261862 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		DAC3128B15E5C1CF00261862 /* markbook-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "markbook-Info.plist"; sourceTree = "<group>"; };
+		DAC3128B15E5C1CF00261862 /* MarkBook.xcodeproj-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MarkBook.xcodeproj-Info.plist"; sourceTree = "<group>"; };
 		DAC3128D15E5C1CF00261862 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DAC3128F15E5C1CF00261862 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		DAC3129115E5C1CF00261862 /* markbook-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "markbook-Prefix.pch"; sourceTree = "<group>"; };
+		DAC3129115E5C1CF00261862 /* MarkBook.xcodeproj-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MarkBook.xcodeproj-Prefix.pch"; sourceTree = "<group>"; };
 		DAC3129315E5C1CF00261862 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		DAC3129515E5C1CF00261862 /* MBAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MBAppDelegate.h; sourceTree = "<group>"; };
 		DAC3129615E5C1CF00261862 /* MBAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MBAppDelegate.m; sourceTree = "<group>"; };
 		DAC3129915E5C1CF00261862 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		DAC3129C15E5C1CF00261862 /* markbook.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = markbook.xcdatamodel; sourceTree = "<group>"; };
-		DAC312A315E5C1D000261862 /* markbookTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = markbookTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DAC312A315E5C1D000261862 /* MarkBookTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MarkBookTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAC312A415E5C1D000261862 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
-		DAC312AB15E5C1D000261862 /* markbookTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "markbookTests-Info.plist"; sourceTree = "<group>"; };
+		DAC312AB15E5C1D000261862 /* MarkBook.xcodeprojTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MarkBook.xcodeprojTests-Info.plist"; sourceTree = "<group>"; };
 		DAC312AD15E5C1D000261862 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DAC312AF15E5C1D000261862 /* markbookTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = markbookTests.h; sourceTree = "<group>"; };
 		DAC312B015E5C1D000261862 /* markbookTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = markbookTests.m; sourceTree = "<group>"; };
@@ -73,6 +74,7 @@
 		DAC3132515E5DE3B00261862 /* MBWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBWindowController.h; sourceTree = "<group>"; };
 		DAC3132615E5DE3B00261862 /* MBWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBWindowController.m; sourceTree = "<group>"; };
 		DAC3132715E5DE3B00261862 /* MBWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MBWindowController.xib; sourceTree = "<group>"; };
+		DAF4BF9215F04B1C00AFE2E4 /* myeggs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = myeggs; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +120,7 @@
 		DAC3127415E5C1CF00261862 = {
 			isa = PBXGroup;
 			children = (
+				DAF4BF9215F04B1C00AFE2E4 /* myeggs */,
 				DA16B39E15E661BD00D133C9 /* SourceView */,
 				DAC3128915E5C1CF00261862 /* markbook */,
 				DAC312A915E5C1D000261862 /* markbookTests */,
@@ -129,8 +132,8 @@
 		DAC3128015E5C1CF00261862 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				DAC3127F15E5C1CF00261862 /* markbook.app */,
-				DAC312A315E5C1D000261862 /* markbookTests.octest */,
+				DAC3127F15E5C1CF00261862 /* MarkBook.app */,
+				DAC312A315E5C1D000261862 /* MarkBookTests.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -174,10 +177,10 @@
 		DAC3128A15E5C1CF00261862 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				DAC3128B15E5C1CF00261862 /* markbook-Info.plist */,
+				DAC3128B15E5C1CF00261862 /* MarkBook.xcodeproj-Info.plist */,
 				DAC3128C15E5C1CF00261862 /* InfoPlist.strings */,
 				DAC3128F15E5C1CF00261862 /* main.m */,
-				DAC3129115E5C1CF00261862 /* markbook-Prefix.pch */,
+				DAC3129115E5C1CF00261862 /* MarkBook.xcodeproj-Prefix.pch */,
 				DAC3129215E5C1CF00261862 /* Credits.rtf */,
 			);
 			name = "Supporting Files";
@@ -196,7 +199,7 @@
 		DAC312AA15E5C1D000261862 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				DAC312AB15E5C1D000261862 /* markbookTests-Info.plist */,
+				DAC312AB15E5C1D000261862 /* MarkBook.xcodeprojTests-Info.plist */,
 				DAC312AC15E5C1D000261862 /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
@@ -205,9 +208,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		DAC3127E15E5C1CF00261862 /* markbook */ = {
+		DAC3127E15E5C1CF00261862 /* MarkBook.xcodeproj */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DAC312B415E5C1D000261862 /* Build configuration list for PBXNativeTarget "markbook" */;
+			buildConfigurationList = DAC312B415E5C1D000261862 /* Build configuration list for PBXNativeTarget "MarkBook.xcodeproj" */;
 			buildPhases = (
 				DAC3127B15E5C1CF00261862 /* Sources */,
 				DAC3127C15E5C1CF00261862 /* Frameworks */,
@@ -217,14 +220,14 @@
 			);
 			dependencies = (
 			);
-			name = markbook;
+			name = MarkBook.xcodeproj;
 			productName = markbook;
-			productReference = DAC3127F15E5C1CF00261862 /* markbook.app */;
+			productReference = DAC3127F15E5C1CF00261862 /* MarkBook.app */;
 			productType = "com.apple.product-type.application";
 		};
-		DAC312A215E5C1D000261862 /* markbookTests */ = {
+		DAC312A215E5C1D000261862 /* MarkBook.xcodeprojTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DAC312B715E5C1D000261862 /* Build configuration list for PBXNativeTarget "markbookTests" */;
+			buildConfigurationList = DAC312B715E5C1D000261862 /* Build configuration list for PBXNativeTarget "MarkBook.xcodeprojTests" */;
 			buildPhases = (
 				DAC3129E15E5C1D000261862 /* Sources */,
 				DAC3129F15E5C1D000261862 /* Frameworks */,
@@ -236,9 +239,9 @@
 			dependencies = (
 				DAC312A815E5C1D000261862 /* PBXTargetDependency */,
 			);
-			name = markbookTests;
+			name = MarkBook.xcodeprojTests;
 			productName = markbookTests;
-			productReference = DAC312A315E5C1D000261862 /* markbookTests.octest */;
+			productReference = DAC312A315E5C1D000261862 /* MarkBookTests.octest */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -251,7 +254,7 @@
 				LastUpgradeCheck = 0440;
 				ORGANIZATIONNAME = amoblin;
 			};
-			buildConfigurationList = DAC3127915E5C1CF00261862 /* Build configuration list for PBXProject "markbook" */;
+			buildConfigurationList = DAC3127915E5C1CF00261862 /* Build configuration list for PBXProject "MarkBook" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -263,8 +266,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				DAC3127E15E5C1CF00261862 /* markbook */,
-				DAC312A215E5C1D000261862 /* markbookTests */,
+				DAC3127E15E5C1CF00261862 /* MarkBook.xcodeproj */,
+				DAC312A215E5C1D000261862 /* MarkBook.xcodeprojTests */,
 			);
 		};
 /* End PBXProject section */
@@ -278,6 +281,7 @@
 				DAC3129415E5C1CF00261862 /* Credits.rtf in Resources */,
 				DAC3129A15E5C1CF00261862 /* MainMenu.xib in Resources */,
 				DAC3132915E5DE3B00261862 /* MBWindowController.xib in Resources */,
+				DAF4BF9315F04B1C00AFE2E4 /* myeggs in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,7 +341,7 @@
 /* Begin PBXTargetDependency section */
 		DAC312A815E5C1D000261862 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = DAC3127E15E5C1CF00261862 /* markbook */;
+			target = DAC3127E15E5C1CF00261862 /* MarkBook.xcodeproj */;
 			targetProxy = DAC312A715E5C1D000261862 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -432,9 +436,9 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "markbook/markbook-Prefix.pch";
-				INFOPLIST_FILE = "markbook/markbook-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				GCC_PREFIX_HEADER = "markbook/MarkBook.xcodeproj-Prefix.pch";
+				INFOPLIST_FILE = "markbook/MarkBook.xcodeproj-Info.plist";
+				PRODUCT_NAME = MarkBook;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -444,9 +448,9 @@
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "markbook/markbook-Prefix.pch";
-				INFOPLIST_FILE = "markbook/markbook-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				GCC_PREFIX_HEADER = "markbook/MarkBook.xcodeproj-Prefix.pch";
+				INFOPLIST_FILE = "markbook/MarkBook.xcodeproj-Info.plist";
+				PRODUCT_NAME = MarkBook;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -459,8 +463,8 @@
 				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "markbook/markbook-Prefix.pch";
-				INFOPLIST_FILE = "markbookTests/markbookTests-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				INFOPLIST_FILE = "markbookTests/MarkBook.xcodeprojTests-Info.plist";
+				PRODUCT_NAME = MarkBookTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = octest;
 			};
@@ -474,8 +478,8 @@
 				FRAMEWORK_SEARCH_PATHS = "\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "markbook/markbook-Prefix.pch";
-				INFOPLIST_FILE = "markbookTests/markbookTests-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				INFOPLIST_FILE = "markbookTests/MarkBook.xcodeprojTests-Info.plist";
+				PRODUCT_NAME = MarkBookTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = octest;
 			};
@@ -484,7 +488,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		DAC3127915E5C1CF00261862 /* Build configuration list for PBXProject "markbook" */ = {
+		DAC3127915E5C1CF00261862 /* Build configuration list for PBXProject "MarkBook" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DAC312B215E5C1D000261862 /* Debug */,
@@ -493,7 +497,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DAC312B415E5C1D000261862 /* Build configuration list for PBXNativeTarget "markbook" */ = {
+		DAC312B415E5C1D000261862 /* Build configuration list for PBXNativeTarget "MarkBook.xcodeproj" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DAC312B515E5C1D000261862 /* Debug */,
@@ -502,7 +506,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DAC312B715E5C1D000261862 /* Build configuration list for PBXNativeTarget "markbookTests" */ = {
+		DAC312B715E5C1D000261862 /* Build configuration list for PBXNativeTarget "MarkBook.xcodeprojTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DAC312B815E5C1D000261862 /* Debug */,
