@@ -12,6 +12,9 @@
 		DA16B3A115E661E600D133C9 /* NSArray_Extensions.m in Sources */ = {isa = PBXBuildFile; fileRef = DA16B3A015E661E600D133C9 /* NSArray_Extensions.m */; };
 		DA16B3A415E665CB00D133C9 /* ImageAndTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = DA16B3A315E665CB00D133C9 /* ImageAndTextCell.m */; };
 		DA16B3A715E66A0500D133C9 /* SeparatorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = DA16B3A615E66A0500D133C9 /* SeparatorCell.m */; };
+		DA43EC3C15F0CC7E00161D1E /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA43EC3B15F0CC7E00161D1E /* Sparkle.framework */; };
+		DA43EC3F15F0CD3200161D1E /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = DA43EC3B15F0CC7E00161D1E /* Sparkle.framework */; };
+		DA43EC4115F0CF8800161D1E /* dsa_pub.pem in Resources */ = {isa = PBXBuildFile; fileRef = DA43EC4015F0CF8800161D1E /* dsa_pub.pem */; };
 		DAC3128415E5C1CF00261862 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAC3128315E5C1CF00261862 /* Cocoa.framework */; };
 		DAC3128E15E5C1CF00261862 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DAC3128C15E5C1CF00261862 /* InfoPlist.strings */; };
 		DAC3129015E5C1CF00261862 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DAC3128F15E5C1CF00261862 /* main.m */; };
@@ -39,6 +42,19 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		DA43EC3E15F0CD0600161D1E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				DA43EC3F15F0CD3200161D1E /* Sparkle.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		DA16B39815E660FD00D133C9 /* ChildNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChildNode.h; sourceTree = "<group>"; };
 		DA16B39915E660FD00D133C9 /* ChildNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChildNode.m; sourceTree = "<group>"; };
@@ -50,6 +66,8 @@
 		DA16B3A315E665CB00D133C9 /* ImageAndTextCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageAndTextCell.m; sourceTree = "<group>"; };
 		DA16B3A515E66A0500D133C9 /* SeparatorCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SeparatorCell.h; sourceTree = "<group>"; };
 		DA16B3A615E66A0500D133C9 /* SeparatorCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SeparatorCell.m; sourceTree = "<group>"; };
+		DA43EC3B15F0CC7E00161D1E /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sparkle.framework; sourceTree = "<group>"; };
+		DA43EC4015F0CF8800161D1E /* dsa_pub.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dsa_pub.pem; sourceTree = "<group>"; };
 		DAC3127F15E5C1CF00261862 /* MarkBook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MarkBook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAC3128315E5C1CF00261862 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		DAC3128615E5C1CF00261862 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -66,7 +84,7 @@
 		DAC3129C15E5C1CF00261862 /* markbook.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = markbook.xcdatamodel; sourceTree = "<group>"; };
 		DAC312A315E5C1D000261862 /* MarkBookTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MarkBookTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAC312A415E5C1D000261862 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
-		DAC312AB15E5C1D000261862 /* MarkBook.xcodeprojTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MarkBook.xcodeprojTests-Info.plist"; sourceTree = "<group>"; };
+		DAC312AB15E5C1D000261862 /* MarkBook-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MarkBook-Info.plist"; sourceTree = "<group>"; };
 		DAC312AD15E5C1D000261862 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		DAC312AF15E5C1D000261862 /* markbookTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = markbookTests.h; sourceTree = "<group>"; };
 		DAC312B015E5C1D000261862 /* markbookTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = markbookTests.m; sourceTree = "<group>"; };
@@ -84,6 +102,7 @@
 			files = (
 				DAC312BB15E5C4D400261862 /* WebKit.framework in Frameworks */,
 				DAC3128415E5C1CF00261862 /* Cocoa.framework in Frameworks */,
+				DA43EC3C15F0CC7E00161D1E /* Sparkle.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,6 +160,7 @@
 		DAC3128215E5C1CF00261862 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DA43EC3B15F0CC7E00161D1E /* Sparkle.framework */,
 				DAC312BA15E5C4D400261862 /* WebKit.framework */,
 				DAC3128315E5C1CF00261862 /* Cocoa.framework */,
 				DAC312A415E5C1D000261862 /* SenTestingKit.framework */,
@@ -199,7 +219,8 @@
 		DAC312AA15E5C1D000261862 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				DAC312AB15E5C1D000261862 /* MarkBook.xcodeprojTests-Info.plist */,
+				DA43EC4015F0CF8800161D1E /* dsa_pub.pem */,
+				DAC312AB15E5C1D000261862 /* MarkBook-Info.plist */,
 				DAC312AC15E5C1D000261862 /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
@@ -208,19 +229,20 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		DAC3127E15E5C1CF00261862 /* MarkBook.xcodeproj */ = {
+		DAC3127E15E5C1CF00261862 /* MarkBook */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DAC312B415E5C1D000261862 /* Build configuration list for PBXNativeTarget "MarkBook.xcodeproj" */;
+			buildConfigurationList = DAC312B415E5C1D000261862 /* Build configuration list for PBXNativeTarget "MarkBook" */;
 			buildPhases = (
 				DAC3127B15E5C1CF00261862 /* Sources */,
 				DAC3127C15E5C1CF00261862 /* Frameworks */,
 				DAC3127D15E5C1CF00261862 /* Resources */,
+				DA43EC3E15F0CD0600161D1E /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = MarkBook.xcodeproj;
+			name = MarkBook;
 			productName = markbook;
 			productReference = DAC3127F15E5C1CF00261862 /* MarkBook.app */;
 			productType = "com.apple.product-type.application";
@@ -266,7 +288,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				DAC3127E15E5C1CF00261862 /* MarkBook.xcodeproj */,
+				DAC3127E15E5C1CF00261862 /* MarkBook */,
 				DAC312A215E5C1D000261862 /* MarkBook.xcodeprojTests */,
 			);
 		};
@@ -282,6 +304,7 @@
 				DAC3129A15E5C1CF00261862 /* MainMenu.xib in Resources */,
 				DAC3132915E5DE3B00261862 /* MBWindowController.xib in Resources */,
 				DAE229E815F07F4A00E44370 /* myeggs in Resources */,
+				DA43EC4115F0CF8800161D1E /* dsa_pub.pem in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -341,7 +364,7 @@
 /* Begin PBXTargetDependency section */
 		DAC312A815E5C1D000261862 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = DAC3127E15E5C1CF00261862 /* MarkBook.xcodeproj */;
+			target = DAC3127E15E5C1CF00261862 /* MarkBook */;
 			targetProxy = DAC312A715E5C1D000261862 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -435,6 +458,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "markbook/MarkBook.xcodeproj-Prefix.pch";
 				INFOPLIST_FILE = "markbook/MarkBook.xcodeproj-Info.plist";
@@ -447,6 +474,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "markbook/MarkBook.xcodeproj-Prefix.pch";
 				INFOPLIST_FILE = "markbook/MarkBook.xcodeproj-Info.plist";
@@ -497,7 +528,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DAC312B415E5C1D000261862 /* Build configuration list for PBXNativeTarget "MarkBook.xcodeproj" */ = {
+		DAC312B415E5C1D000261862 /* Build configuration list for PBXNativeTarget "MarkBook" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DAC312B515E5C1D000261862 /* Debug */,

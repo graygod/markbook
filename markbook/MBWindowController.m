@@ -327,7 +327,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	NSArray	*selection = [treeController selectedNodes];	
 	if ([selection count] > 0) {
         BaseNode *node = [[selection objectAtIndex:0] representedObject];
-        NSString *app = @"MacVim";
+        NSString *app = @"Finder";
         [[NSWorkspace sharedWorkspace] openFile:[node urlString] withApplication:app];
     }
 }
