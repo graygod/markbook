@@ -170,7 +170,7 @@
 }
 
 - (void) initializeEventStream {
-    root = [NSHomeDirectory() stringByAppendingPathComponent:@"markbook"];
+    root = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook"];
     NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
     NSArray *pathsToWatch = [NSArray arrayWithObject:notesPath];
     FSEventStreamContext context = {0, (__bridge void *)self, NULL, NULL, NULL};
@@ -217,24 +217,24 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
             if ([[treeController selectedNodes] count] > 0) {
                  prePath = [[[[treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
             }
-            //NSLog(@"changed path: %@", path);
-            NSIndexPath *indexPath = [self indexPathOfString:path];
-            //[self selectParentFromSelection];
-            [treeController removeObjectAtArrangedObjectIndexPath:indexPath];
-
-            NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:path], @"group", [self recurise:path], @"entries", path, KEY_URL, nil];
-            //NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:path], @"group", [self recurise:path], @"entries", nil];
-            NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
             
-            if (buildingOutlineView) {
-                [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
-            } else {
-                [myOutlineView setHidden:YES];
-                [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
-                if (prePath) {
-                    [treeController setSelectionIndexPath:[self indexPathOfString:prePath]];
+            NSIndexPath *indexPath = [self indexPathOfString:path];
+            if (indexPath) {
+                [treeController removeObjectAtArrangedObjectIndexPath:indexPath];
+
+                NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:path], @"group", [self recurise:path], @"entries", path, KEY_URL, nil];
+                 NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
+                
+                if (buildingOutlineView) {
+                    [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
+                } else {
+                    [myOutlineView setHidden:YES];
+                    [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
+                    if (prePath) {
+                        [treeController setSelectionIndexPath:[self indexPathOfString:prePath]];
+                    }
+                    [myOutlineView setHidden:NO];
                 }
-                [myOutlineView setHidden:NO];
             }
         }
     } else {
@@ -548,6 +548,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 - (NSArray *)recurise:(NSString *)dir{
     NSMutableArray *arr = [[NSMutableArray alloc] initWithCapacity:100];
     
+    //NSLog(@"%@", dir);
     BOOL isDir = NO;
     for (NSString *file in [fm contentsOfDirectoryAtPath:dir error:nil]) {
         NSString *filePath = [dir stringByAppendingPathComponent:file];
