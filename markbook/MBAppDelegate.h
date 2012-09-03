@@ -17,7 +17,6 @@
 @property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 
 @property (strong) MBWindowController *myWindowController;
-@property (unsafe_unretained) IBOutlet NSWindow *window;
 
 - (IBAction)saveAction:(id)sender;
 

@@ -307,7 +307,7 @@
 		if (index == NSNotFound)
 			return nil;
 		
-		[reverseIndexes addObject:[NSNumber numberWithInt:index]];
+		[reverseIndexes addObject:[NSNumber numberWithInteger:index]];
 		doc = parent;
 	}
 	
@@ -315,7 +315,7 @@
 	index = [array indexOfObjectIdenticalTo:doc];
 	if (index == NSNotFound)
 		return nil;
-	[reverseIndexes addObject:[NSNumber numberWithInt:index]];
+	[reverseIndexes addObject:[NSNumber numberWithInteger:index]];
 	
 	// now build the index path
     NSEnumerator *re = [reverseIndexes reverseObjectEnumerator];

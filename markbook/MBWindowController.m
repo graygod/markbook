@@ -100,6 +100,7 @@
 @synthesize dragNodesArray;
 @synthesize currentView;
 @synthesize retargetWebView;
+@synthesize delegate;
 @synthesize stream;
 @synthesize lastEventId;
 @synthesize fm;
@@ -521,7 +522,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 				
 				// add its children
 				NSDictionary *newChildren = [entry objectForKey:KEY_ENTRIES];
-                [self addEntries:newChildren atIndexPath:@""];
+                [self addEntries:newChildren atIndexPath:(NSIndexPath*)@""];
 				
 				[self selectParentFromSelection];
 			} else {
@@ -720,7 +721,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     NSString *notesPath = [NSString stringWithFormat:@"%@/", [root stringByAppendingPathComponent:@"notes"]];
     NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:notesPath], @"group", [self recurise:notesPath], @"entries", notesPath, KEY_URL, nil];
     NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
-    [self addEntries:(NSDictionary *)entries atIndexPath:@""];
+    [self addEntries:(NSDictionary *)entries atIndexPath:(NSIndexPath*)@""];
 	
 	buildingOutlineView = NO;		// we're done building our default tree
 	// remove the current selection

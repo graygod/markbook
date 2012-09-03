@@ -15,7 +15,6 @@
 @synthesize managedObjectModel = _managedObjectModel;
 @synthesize managedObjectContext = _managedObjectContext;
 @synthesize myWindowController;
-@synthesize window = _window;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -186,9 +185,8 @@
 }
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
-    NSLog(@"hello");
-    [_window makeKeyAndOrderFront:self];
-    return YES;
+    [myWindowController showWindow:self];
+    return NO;
 }
 
 @end

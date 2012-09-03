@@ -8,6 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
+#import "MBAppDelegate.h"
 
 @class SeparatorCell;
 
@@ -26,14 +27,13 @@
 @property (strong) NSArray *dragNodesArray;
 @property (strong) NSView *currentView;
 @property (nonatomic) BOOL retargetWebView;
+@property (strong) IBOutlet MBAppDelegate *delegate;
 
 @property (strong, nonatomic) NSNumber *lastEventId;
 @property (nonatomic) FSEventStreamRef stream;
 @property (strong, nonatomic) NSFileManager *fm;
 @property (strong, nonatomic) NSMutableDictionary* pathModificationDates;
 @property (strong, nonatomic) NSString* root;
-
-- (IBAction)refreshAction:(id)sender;
 
 - (void) addModifiedImagesAtPath: (NSString *)path;
     - (NSArray *)recurise:(NSString *)dir;
