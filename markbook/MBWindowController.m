@@ -117,6 +117,7 @@
     self = [super initWithWindow:window];
     if (self) {
         // Initialization code here.
+        root = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook"];
         contents = [[NSMutableArray alloc] init];
         
 		// cache the reused icon images
@@ -171,7 +172,6 @@
 }
 
 - (void) initializeEventStream {
-    root = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook"];
     NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
     NSArray *pathsToWatch = [NSArray arrayWithObject:notesPath];
     FSEventStreamContext context = {0, (__bridge void *)self, NULL, NULL, NULL};
