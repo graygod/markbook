@@ -21,7 +21,7 @@
 #define FILEVIEW_NIB_NAME		@"FileView"		// nib name for the file view
 #define CHILDEDIT_NAME			@"ChildEdit"	// nib name for the child edit window controller
 
-#define UNTITLED_NAME			@"Untitled"		// default name for added folders and leafs
+#define UNTITLED_NAME			@"Untitled.rst"		// default name for added folders and leafs
 
 #define HTTP_PREFIX				@"/"
 
@@ -101,6 +101,7 @@
 @synthesize currentView;
 @synthesize retargetWebView;
 @synthesize delegate;
+@synthesize addButton;
 @synthesize stream;
 @synthesize lastEventId;
 @synthesize fm;
@@ -112,7 +113,7 @@
     self = [super initWithWindow:window];
     if (self) {
         // Initialization code here.
-        root = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook"];
+        root = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook/"];
 
         if ( ! [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"]) {
             [[NSUserDefaults standardUserDefaults] setObject:@"TextEdit" forKey:@"editor"];
@@ -158,6 +159,8 @@
 	[imageAndTextCell setEditable:YES];
 	[tableColumn setDataCell:imageAndTextCell];
     
+    [addButton setImage:[NSImage imageNamed:NSImageNameAddTemplate]];
+    
 	separatorCell = [[SeparatorCell alloc] init];
     [separatorCell setEditable:NO];
     
@@ -194,6 +197,33 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         [wc addModifiedImagesAtPath:[(__bridge NSArray *)eventPaths objectAtIndex:i]];
         wc.lastEventId = [NSNumber numberWithLong:eventIds[i]];
     }
+}
+
+- (IBAction)addFileAction:(id)sender {
+    NSString *parentDir;
+    if ([[treeController selectedNodes] count] > 0) {
+        NSTreeNode *selectedNode = [[treeController selectedNodes] objectAtIndex:0];
+        if ([selectedNode isLeaf]) {
+            parentDir = [[[selectedNode parentNode] representedObject] urlString];
+        } else {
+            parentDir = [[selectedNode representedObject] urlString];
+        }
+    } else {
+        parentDir = [root stringByAppendingPathComponent:@"notes"];
+    }
+    NSLog(@"%@", [parentDir stringByAppendingPathComponent:UNTITLED_NAME]);
+    //NSLog(@"%@", [self indexPathOfString:parentDir]);
+    
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
+    [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
+    
+    NSString *content = [NSString stringWithFormat:@"=====\nTitle\n=====\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
+    NSData *fileContents = [content dataUsingEncoding:NSUTF8StringEncoding];
+    [fm createFileAtPath:[parentDir stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
+    
+    //[self addChild:[parentDir stringByAppendingPathComponent:UNTITLED_NAME] withName:UNTITLED_NAME selectParent:YES];
+    //[self addFolder:UNTITLED_NAME withURL: atIndexPath:(NSIndexPath*)@""];
 }
 
 - (void) addModifiedImagesAtPath: (NSString *)path {
@@ -561,7 +591,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
             filePath = [NSString stringWithFormat:@"%@/", filePath];
             [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", filePath, @"url", nil]];
         } else if ([[file pathExtension] isEqualToString:@"rst"]) {
-            [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"name", filePath, @"url", nil]];
+            [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:[file stringByDeletingPathExtension], @"name", filePath, @"url", nil]];
         }
         isDir = NO;
     }
