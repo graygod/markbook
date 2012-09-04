@@ -206,6 +206,10 @@
     apps = [self AllApplications:[NSArray arrayWithObjects:@"/Applications", nil]];
     [_selectAppPopUpButton removeAllItems];
     [_selectAppPopUpButton addItemsWithTitles:apps];
+    NSString *app = [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"];
+    if (app) {
+        [_selectAppPopUpButton selectItemWithTitle:app];
+    }
 }
 
 - (void) ApplicationsInDirectory:(NSString*)searchPath withApplications:(NSMutableArray*)applications{
@@ -219,7 +223,7 @@
         if ([manager fileExistsAtPath:file isDirectory:&isDir] && isDir) {
             NSString* fullpath = [searchPath stringByAppendingPathComponent:file];
             if ([[file pathExtension] isEqualToString:@"app"]) {
-                [applications addObject:[[NSFileManager defaultManager] displayNameAtPath:fullpath]];
+                [applications addObject:[file stringByDeletingPathExtension]];
             }
             else [self ApplicationsInDirectory:fullpath withApplications:applications];
         }

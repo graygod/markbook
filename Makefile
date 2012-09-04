@@ -7,10 +7,10 @@ rev:
 	make xcode
 
 xcode:
-	xcodebuild
+	@xcodebuild
 	@[ -d /tmp/MarkBook ] || mkdir /tmp/MarkBook
-	rm -rf /tmp/MarkBook/MarkBook.app
-	cp -rf build/Release/MarkBook.app /tmp/MarkBook/MarkBook.app
+	@rm -rf /tmp/MarkBook/MarkBook.app
+	@cp -rf build/Release/MarkBook.app /tmp/MarkBook/MarkBook.app
 
 dmg:
 	ln -sf /Applications /tmp/MarkBook
