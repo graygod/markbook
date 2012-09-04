@@ -10,12 +10,14 @@
 #import "MBWindowController.h"
 
 @implementation MBAppDelegate
+@synthesize selectAppPopUpButton = _selectAppPopUpButton;
 
 @synthesize persistentStoreCoordinator = _persistentStoreCoordinator;
 @synthesize managedObjectModel = _managedObjectModel;
 @synthesize managedObjectContext = _managedObjectContext;
 @synthesize myWindowController;
 @synthesize preferencesWindow = _preferencesWindow;
+@synthesize apps;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -128,11 +130,12 @@
 // Performs the save action for the application, which is to send the save: message to the application's managed object context. Any encountered errors are presented to the user.
 - (IBAction)showPreferencesWindow:(id)sender {
     [_preferencesWindow display];
+    [self initAppList];
     [_preferencesWindow makeKeyAndOrderFront:self];
 }
 
 - (IBAction)setEditorAction:(id)sender {
-    NSLog(@"%@", [sender stringValue]);
+    [[NSUserDefaults standardUserDefaults] setObject:[sender titleOfSelectedItem] forKey:@"editor"];
 }
 
 - (IBAction)saveAction:(id)sender
@@ -197,6 +200,39 @@
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
     [myWindowController showWindow:self];
     return NO;
+}
+
+- (void) initAppList {
+    apps = [self AllApplications:[NSArray arrayWithObjects:@"/Applications", nil]];
+    [_selectAppPopUpButton removeAllItems];
+    [_selectAppPopUpButton addItemsWithTitles:apps];
+}
+
+- (void) ApplicationsInDirectory:(NSString*)searchPath withApplications:(NSMutableArray*)applications{
+    BOOL isDir;
+    NSFileManager* manager = [NSFileManager defaultManager];
+    NSArray* files = [manager contentsOfDirectoryAtPath:searchPath error:nil];
+    NSEnumerator* fileEnum = [files objectEnumerator];
+    NSString* file;
+    while (file = [fileEnum nextObject]) {
+        [manager changeCurrentDirectoryPath:searchPath];
+        if ([manager fileExistsAtPath:file isDirectory:&isDir] && isDir) {
+            NSString* fullpath = [searchPath stringByAppendingPathComponent:file];
+            if ([[file pathExtension] isEqualToString:@"app"]) {
+                [applications addObject:[[NSFileManager defaultManager] displayNameAtPath:fullpath]];
+            }
+            else [self ApplicationsInDirectory:fullpath withApplications:applications];
+        }
+    }
+}
+
+- (NSArray*) AllApplications:(NSArray*) searchPaths{
+    
+    NSMutableArray* applications = [[NSMutableArray alloc] initWithCapacity:100];
+    NSEnumerator* searchPathEnum = [searchPaths objectEnumerator];
+    NSString* path;
+    while (path = [searchPathEnum nextObject]) [self ApplicationsInDirectory:path withApplications:applications];
+    return ([applications count]) ? applications : nil;
 }
 
 @end

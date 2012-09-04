@@ -118,6 +118,10 @@
     if (self) {
         // Initialization code here.
         root = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook"];
+
+        if ( ! [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"]) {
+            [[NSUserDefaults standardUserDefaults] setObject:@"TextEdit" forKey:@"editor"];
+        }
         contents = [[NSMutableArray alloc] init];
         
 		// cache the reused icon images
@@ -328,7 +332,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	NSArray	*selection = [treeController selectedNodes];	
 	if ([selection count] > 0) {
         BaseNode *node = [[selection objectAtIndex:0] representedObject];
-        NSString *app = @"Finder";
+        NSString *app = [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"];
         [[NSWorkspace sharedWorkspace] openFile:[node urlString] withApplication:app];
     }
 }

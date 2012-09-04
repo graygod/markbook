@@ -8,7 +8,7 @@ rev:
 
 xcode:
 	xcodebuild
-	-@mkdir /tmp/MarkBook
+	@[ -d /tmp/MarkBook ] || mkdir /tmp/MarkBook
 	rm -rf /tmp/MarkBook/MarkBook.app
 	cp -rf build/Release/MarkBook.app /tmp/MarkBook/MarkBook.app
 
@@ -26,3 +26,8 @@ zip: xcode
 	echo
 	@sign_update.rb ~/Downloads/MarkBook_v1.0.zip ~/.ssh/dsa_priv.pem
 	ls -l ~/Downloads/MarkBook_v1.0.zip
+
+run: xcode
+	build/Release/MarkBook.app/Contents/MacOS/MarkBook
+
+test:

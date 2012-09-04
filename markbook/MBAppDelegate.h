@@ -20,6 +20,8 @@
 @property (weak) IBOutlet NSWindow *preferencesWindow;
 - (IBAction)showPreferencesWindow:(id)sender;
 - (IBAction)setEditorAction:(id)sender;
+@property (weak) IBOutlet NSPopUpButton *selectAppPopUpButton;
+@property (strong, nonatomic) NSArray *apps;
 
 - (IBAction)saveAction:(id)sender;
 
