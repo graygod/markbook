@@ -23,5 +23,6 @@ install:
 
 zip: xcode
 	@zip -r ~/Downloads/MarkBook_v1.0.zip /tmp/MarkBook/MarkBook.app > /dev/null
+	echo
 	@sign_update.rb ~/Downloads/MarkBook_v1.0.zip ~/.ssh/dsa_priv.pem
 	ls -l ~/Downloads/MarkBook_v1.0.zip

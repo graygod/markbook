@@ -15,6 +15,7 @@
 @synthesize managedObjectModel = _managedObjectModel;
 @synthesize managedObjectContext = _managedObjectContext;
 @synthesize myWindowController;
+@synthesize preferencesWindow = _preferencesWindow;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -125,6 +126,15 @@
 }
 
 // Performs the save action for the application, which is to send the save: message to the application's managed object context. Any encountered errors are presented to the user.
+- (IBAction)showPreferencesWindow:(id)sender {
+    [_preferencesWindow display];
+    [_preferencesWindow makeKeyAndOrderFront:self];
+}
+
+- (IBAction)setEditorAction:(id)sender {
+    NSLog(@"%@", [sender stringValue]);
+}
+
 - (IBAction)saveAction:(id)sender
 {
     NSError *error = nil;
