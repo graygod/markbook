@@ -107,11 +107,6 @@
 @synthesize pathModificationDates;
 @synthesize root;
 
-- (id) init {
-    self = [super initWithWindowNibName:@"MBWindowController"];
-    return self;
-}
-
 - (id)initWithWindow:(NSWindow *)window
 {
     self = [super initWithWindow:window];

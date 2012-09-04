@@ -1,5 +1,8 @@
 default: xcode install
 
+info:
+	@git log --pretty=oneline | wc -l
+
 rev:
 	defaults write `pwd`/markbook/MarkBook.xcodeproj-Info CFBundleVersion `git log --pretty=oneline | wc -l`
 	git add -u
