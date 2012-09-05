@@ -105,7 +105,7 @@
 @synthesize stream;
 @synthesize lastEventId;
 @synthesize fm;
-@synthesize pathModificationDates;
+@synthesize pathInfos;
 @synthesize root;
 
 - (id)initWithWindow:(NSWindow *)window
@@ -128,8 +128,7 @@
 		[urlImage setSize:NSMakeSize(16,16)];
         
         fm = [NSFileManager defaultManager];
-        pathModificationDates = [[NSMutableDictionary alloc] initWithCapacity:300];
-        
+        pathInfos = [[NSMutableDictionary alloc] initWithCapacity:300];
         
         NSString *notes_path = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook/notes"];
         if ( ! [fm fileExistsAtPath:notes_path]) {
@@ -194,6 +193,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     MBWindowController *wc = (__bridge MBWindowController *)userData;
     size_t i;
     for (i=0; i<numEvents; i++) {
+        //NSLog(@"%@", streamRef);
+        //NSLog(@"%u", eventFlags[i]);
         [wc addModifiedImagesAtPath:[(__bridge NSArray *)eventPaths objectAtIndex:i]];
         wc.lastEventId = [NSNumber numberWithLong:eventIds[i]];
     }
@@ -211,14 +212,14 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     } else {
         parentDir = [root stringByAppendingPathComponent:@"notes"];
     }
-    NSLog(@"%@", [parentDir stringByAppendingPathComponent:UNTITLED_NAME]);
+    //NSLog(@"%@", [parentDir stringByAppendingPathComponent:UNTITLED_NAME]);
     //NSLog(@"%@", [self indexPathOfString:parentDir]);
     
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
+    [dateFormatter setTimeStyle:NSDateFormatterNoStyle];
     [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
     
-    NSString *content = [NSString stringWithFormat:@"=====\nTitle\n=====\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
+    NSString *content = [NSString stringWithFormat:@"=====\nTitle\n=====\n\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
     NSData *fileContents = [content dataUsingEncoding:NSUTF8StringEncoding];
     [fm createFileAtPath:[parentDir stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
     
@@ -228,7 +229,10 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 
 - (void) addModifiedImagesAtPath: (NSString *)path {
     NSDate *modDate = [[NSDate alloc] init];
+    NSArray *nodes = [fm contentsOfDirectoryAtPath:path error:nil];
+    NSString *fullPath = nil;
     BOOL isDir;
+    //NSLog(@"******* %@",path);
     
     if ([fm fileExistsAtPath:path isDirectory:&isDir]) {
     } else {
@@ -239,10 +243,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     NSDictionary *attributes = [fm attributesOfItemAtPath:path error:NULL];
     modDate = [attributes objectForKey:NSFileModificationDate];
     
-    if ([pathModificationDates objectForKey:path]) {
-        if ([modDate compare:[pathModificationDates objectForKey:path]] == NSOrderedDescending) {
-            [pathModificationDates setObject:modDate forKey:path];
-            // TODO: rebuild this path
+    if ([pathInfos objectForKey:path]) {
+        if ([modDate compare:[[pathInfos objectForKey:path] objectAtIndex:0]] == NSOrderedDescending) {
             NSString *prePath;
             if ([[treeController selectedNodes] count] > 0) {
                  prePath = [[[[treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
@@ -250,32 +252,52 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
             
             NSIndexPath *indexPath = [self indexPathOfString:path];
             if (indexPath) {
-                [treeController removeObjectAtArrangedObjectIndexPath:indexPath];
+                //[treeController removeObjectAtArrangedObjectIndexPath:indexPath];
 
-                NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:path], @"group", [self recurise:path], @"entries", path, KEY_URL, nil];
-                 NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
+                //NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:path], @"group", [self recurise:path], @"entries", path, KEY_URL, nil];
+                 //NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
                 
-                if (buildingOutlineView) {
-                    [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
-                } else {
-                    [myOutlineView setHidden:YES];
-                    [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
-                    if (prePath) {
-                        [treeController setSelectionIndexPath:[self indexPathOfString:prePath]];
+                //if (buildingOutlineView) {
+                //    [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
+                //} else {
+                 //   [myOutlineView setHidden:YES];
+                 //   [self addEntries:(NSDictionary *)entries atIndexPath:indexPath];
+                 //   if (prePath) {
+                 //       [treeController setSelectionIndexPath:[self indexPathOfString:prePath]];
+                 //   }
+                 //   [myOutlineView setHidden:NO];
+                //}
+                NSArray *newNodes = [fm contentsOfDirectoryAtPath:path error:nil];
+                NSArray *oldNodes = [[pathInfos objectForKey:path] objectAtIndex:1];
+                for (NSString *node in newNodes) {
+                    if ( ![oldNodes containsObject:node]) {
+                        NSString *fullPath = [path stringByAppendingPathComponent:node];
+                        NSLog(@"%@", node);
+                        //should add in tree
+                        [self addChild:fullPath withName:[node stringByDeletingPathExtension] selectParent:YES];
                     }
-                    [myOutlineView setHidden:NO];
                 }
+                
+                for (NSString *node in oldNodes) {
+                    if ( ![newNodes containsObject:node]) {
+                        NSString *fullPath = [path stringByAppendingPathComponent:node];
+                        //should remove in tree
+                        NSLog(@"%@", node);
+                        NSIndexPath *nodeIndex = [self indexPathOfString:fullPath];
+                        if (nodeIndex) {
+                            [treeController removeObjectAtArrangedObjectIndexPath:nodeIndex];
+                        }
+                    }
+                }
+                [pathInfos setObject:[NSArray arrayWithObjects:modDate, newNodes, nil] forKey:path];
             }
         }
     } else {
         //NSLog(@"%@", [NSTemporaryDirectory() stringByAppendingPathComponent:path]);
         [fm createDirectoryAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:path] withIntermediateDirectories:YES attributes:NULL error:nil];
-        [pathModificationDates setObject:modDate forKey:path];
+        [pathInfos setObject:[NSArray arrayWithObjects:modDate, nodes, nil] forKey:path];
     }
 
-    NSArray *nodes = [fm contentsOfDirectoryAtPath:path error:nil];
-    NSString *fullPath = nil;
-    
     for(NSString *node in nodes) {
         fullPath = [path stringByAppendingPathComponent:node];
         [fm fileExistsAtPath:fullPath isDirectory:(&isDir)];
@@ -285,19 +307,18 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         
         /* rst file */
         if ([[node pathExtension] isEqualToString:@"rst"]) {
-            if ([pathModificationDates objectForKey:fullPath]) {
-                if ([modDate compare:[pathModificationDates objectForKey:fullPath]] == NSOrderedDescending) {
-                    [pathModificationDates setObject:modDate forKey:fullPath];
+            if ([pathInfos objectForKey:fullPath]) {
+                if ([modDate compare:[pathInfos objectForKey:fullPath]] == NSOrderedDescending) {
+                    [pathInfos setObject:modDate forKey:fullPath];
                     [self rst2html:fullPath withSync:YES];
                     [webView reload:self];
                 }
             } else {
                 //[self rst2html:fullPath withSync:NO];
-                [pathModificationDates setObject:modDate forKey:fullPath];
+                [pathInfos setObject:modDate forKey:fullPath];
             }
         }
     }
-    //[self addChild:path withName:items selectParent:YES];
 }
 
 - (void) rst2html:(NSString *)path withSync:(BOOL)isSync {

@@ -33,7 +33,7 @@
 @property (strong, nonatomic) NSNumber *lastEventId;
 @property (nonatomic) FSEventStreamRef stream;
 @property (strong, nonatomic) NSFileManager *fm;
-@property (strong, nonatomic) NSMutableDictionary* pathModificationDates;
+@property (strong, nonatomic) NSMutableDictionary* pathInfos;
 @property (strong, nonatomic) NSString* root;
 
 - (IBAction)addFileAction:(id)sender;
