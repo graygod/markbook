@@ -37,6 +37,10 @@
 @property (strong, nonatomic) NSString* root;
 
 - (IBAction)addFileAction:(id)sender;
-- (void) addModifiedImagesAtPath: (NSString *)path;
-    - (NSArray *)recurise:(NSString *)dir;
+- (void) addModifiedFilesAtPath: (NSString *)path;
+- (NSArray *)recurise:(NSString *)dir;
+- (NSIndexPath*)indexPathOfString:(NSString *)path;
+- (void) rst2html:(NSString *)path;
+- (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select;
+
 @end
