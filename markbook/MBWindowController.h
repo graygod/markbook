@@ -29,6 +29,8 @@
 @property (nonatomic) BOOL retargetWebView;
 @property (strong) IBOutlet MBAppDelegate *delegate;
 @property (weak) IBOutlet NSButton *addButton;
+@property (weak) IBOutlet NSButton *delButton;
+@property (strong) IBOutlet NSWindow *alertWindow;
 
 @property (strong, nonatomic) NSNumber *lastEventId;
 @property (nonatomic) FSEventStreamRef stream;
@@ -37,6 +39,7 @@
 @property (strong, nonatomic) NSString* root;
 
 - (IBAction)addFileAction:(id)sender;
+- (IBAction)delFileAction:(id)sender;
 - (void) addModifiedFilesAtPath: (NSString *)path;
 - (NSArray *)recurise:(NSString *)dir;
 - (NSIndexPath*)indexPathOfString:(NSString *)path;

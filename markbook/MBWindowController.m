@@ -102,6 +102,8 @@
 @synthesize retargetWebView;
 @synthesize delegate;
 @synthesize addButton;
+@synthesize delButton;
+@synthesize alertWindow;
 @synthesize stream;
 @synthesize lastEventId;
 @synthesize fm;
@@ -153,6 +155,7 @@
 	[tableColumn setDataCell:imageAndTextCell];
     
     [addButton setImage:[NSImage imageNamed:NSImageNameAddTemplate]];
+    [delButton setImage:[NSImage imageNamed:NSImageNameRemoveTemplate]];
     
 	separatorCell = [[SeparatorCell alloc] init];
     [separatorCell setEditable:NO];
@@ -217,6 +220,10 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     
     //[self addChild:[parentDir stringByAppendingPathComponent:UNTITLED_NAME] withName:UNTITLED_NAME selectParent:YES];
     //[self addFolder:UNTITLED_NAME withURL: atIndexPath:(NSIndexPath*)@""];
+}
+
+- (IBAction)delFileAction:(id)sender {
+    [self showWindow:alertWindow];
 }
 
 - (void) addModifiedFilesAtPath: (NSString *)path {
@@ -634,8 +641,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                 
                 if ( ! [fm fileExistsAtPath:dest_path isDirectory:nil]) {
                     //NSLog(@"url file is not existed. generating");
-                    [NSThread detachNewThreadSelector:@selector(rst2html:) toTarget:self withObject:urlStr];
-                    //[self rst2html:urlStr withSync:YES];
+                    //[self performSelectorOnMainThread:@selector(rst2html:) withObject:urlStr waitUntilDone:YES];
+                    [self rst2html:urlStr];
                 }
                 [webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
             }

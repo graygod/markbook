@@ -1,11 +1,6 @@
 task :default => [:xcode, :install] do
 end
 
-task :test do
-	tag=`git describe --tag`
-    print tag
-end
-
 task :info do |t|
 	sh 'git log --pretty=oneline | wc -l'
 end
@@ -15,7 +10,6 @@ task :rev do |t|
 	sh "defaults write `pwd`/markbook/MarkBook.xcodeproj-Info CFBundleVersion %s" % revision
 	sh "git add -u"
 	sh "git ci --amend"
-	sh "make xcode"
 end
 
 task :xcode do |t|
@@ -41,10 +35,10 @@ end
 task :zip => :xcode do |t|
 	tag = `git describe --tag`.rstrip
 	filename= "MarkBook_%s.zip" % tag
-    print filename
 	sh "zip -r ~/Downloads/%s /tmp/MarkBook/MarkBook.app > /dev/null" % filename
 	sh "sign_update.rb ~/Downloads/%s ~/.ssh/dsa_priv.pem" % filename
 	sh "ls -l ~/Downloads/%s" % filename
+	sh 'git log --pretty=oneline | wc -l'
 end
 
 task :run => :xcode do |t|
