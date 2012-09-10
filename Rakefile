@@ -14,7 +14,7 @@ end
 
 task :xcode do |t|
 	sh "xcodebuild"
-	#sh "[ -d /tmp/MarkBook ] || mkdir /tmp/MarkBook"
+    File.directory?"/tmp/MarkBook" || `mkdir /tmp/MarkBook`
 	sh "rm -rf /tmp/MarkBook/MarkBook.app"
 	sh "cp -rf build/Release/MarkBook.app /tmp/MarkBook/MarkBook.app"
 end

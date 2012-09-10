@@ -135,6 +135,7 @@
         if ( ! [fm fileExistsAtPath:notes_path]) {
             [fm createDirectoryAtPath:notes_path withIntermediateDirectories:YES attributes:NULL error:nil];
             [fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"] toPath:[notes_path stringByAppendingPathComponent:@"welcome.rst"] error:nil];
+            [fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"markdown.md"] toPath:[notes_path stringByAppendingPathComponent:@"markdown.md"] error:nil];
         }
     }
     return self;
@@ -257,7 +258,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         NSArray *newNodes = [fm contentsOfDirectoryAtPath:path error:nil];
         NSArray *oldNodes = [pathInfos objectForKey:path];
         for (NSString *node in newNodes) {
-            if ([[node pathExtension] isEqualToString:@"rst"]) {
+            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
                 if ( [oldNodes containsObject:node]) {
                     NSString *fullPath = [path stringByAppendingPathComponent:node];
                     NSDictionary *attributes = [fm attributesOfItemAtPath:fullPath error:NULL];
@@ -266,7 +267,11 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                     if ([pathInfos objectForKey:path]) {
                         if ([modDate compare:[pathInfos objectForKey:fullPath]] == NSOrderedDescending) {
                             NSLog(@"file changed: %@", node);
-                            [self rst2html:fullPath];
+                            if ([[node pathExtension] isEqualToString:@"rst"]) {
+                                [self rst2html:fullPath];
+                            } else if ([[node pathExtension] isEqualToString:@"md"] || [[node pathExtension] isEqualToString:@"markdown"]) {
+                                [self md2html:fullPath];
+                            }
                             [webView reload:self];
                         }
                     }
@@ -280,7 +285,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         }
         
         for (NSString *node in oldNodes) {
-            if ([[node pathExtension] isEqualToString:@"rst"]) {
+            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
                 if ( ![newNodes containsObject:node]) {
                     //NSLog(@"remove: %@", node);
                     NSString *fullPath = [path stringByAppendingPathComponent:node];
@@ -329,6 +334,49 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     } else {
         NSLog(@"Task failed.");
     }
+}
+
+- (void) md2html:(NSString *)path {
+    BOOL isDir;
+    [fm fileExistsAtPath:path isDirectory:&isDir];
+    if (isDir) {
+        return;
+    }
+
+    NSString *dest = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:path]];
+    NSString *parent_path = [dest stringByDeletingLastPathComponent];
+    if ( ! [fm fileExistsAtPath:parent_path isDirectory:nil]) {
+        [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
+    }
+    
+    NSTask *task = [[NSTask alloc] init];
+
+
+    NSArray *args = [NSArray arrayWithObjects:path, nil];
+
+    NSPipe *pipe;
+    pipe = [NSPipe pipe];
+    [task setStandardOutput: pipe];
+
+    NSFileHandle *file;
+    file = [pipe fileHandleForReading];
+
+    [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
+    [task setLaunchPath:[EGGS_ROOT stringByAppendingPathComponent:@"bin/markdown"]];
+    [task setArguments:args];
+    [task launch];
+    
+    [task waitUntilExit];
+    int status = [task terminationStatus];
+    if (status == 0) {
+    } else {
+        NSLog(@"Task failed.");
+    }
+
+    NSString *string = [[NSString alloc] initWithData:[file readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+    string = [NSString stringWithFormat:@"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>  </head><body> %@ </body></html>", string];
+    NSLog(@"%@", dest);
+    [string writeToFile:dest atomically:YES encoding:NSUTF8StringEncoding error:nil];
 }
 
 - (NSIndexPath*)indexPathOfString:(NSString *)path
@@ -591,7 +639,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
             fullPath = [NSString stringWithFormat:@"%@/", fullPath];
             [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", fullPath, @"url", nil]];
         } else {
-            if ([[file pathExtension] isEqualToString:@"rst"]) {
+            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[file pathExtension]] ) {
                 NSDictionary *attributes = [fm attributesOfItemAtPath:fullPath error:NULL];
                 NSDate *modDate = [attributes objectForKey:NSFileModificationDate];
                 [pathInfos setObject:modDate forKey:fullPath];
@@ -623,7 +671,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         if (urlStr) {
             //NSURL *targetURL = [NSURL fileURLWithPath:urlStr];
             
-            if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
+            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[urlStr pathExtension]]) {
                 if (currentView != webView) {
                     // change to web view
                     [self removeSubview];
@@ -642,9 +690,17 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                 if ( ! [fm fileExistsAtPath:dest_path isDirectory:nil]) {
                     //NSLog(@"url file is not existed. generating");
                     //[self performSelectorOnMainThread:@selector(rst2html:) withObject:urlStr waitUntilDone:YES];
-                    [self rst2html:urlStr];
+                    if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
+                        [self rst2html:urlStr];
+                    } else if ([[urlStr pathExtension] isEqualToString:@"md"] || [[urlStr pathExtension] isEqualToString:@"markdown"]) {
+                        [self md2html:urlStr];
+                    }
                 }
-                [webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
+                    [webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                } else {
+                    [webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                }
             }
             
             NSRect newBounds;
