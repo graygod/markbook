@@ -3,7 +3,8 @@ task :default => [:xcode, :install] do
 end
 
 task :info do |t|
-	sh 'git log --pretty=oneline | wc -l'
+    puts `defaults read \`pwd\`/markbook/MarkBook.xcodeproj-Info CFBundleShortVersionString`
+    puts `defaults read \`pwd\`/markbook/MarkBook.xcodeproj-Info CFBundleVersion`
 end
 
 task :rev do |t|

@@ -31,6 +31,7 @@
 @property (weak) IBOutlet NSButton *addButton;
 @property (weak) IBOutlet NSButton *delButton;
 @property (strong) IBOutlet NSWindow *alertWindow;
+@property (strong) IBOutlet NSWindow *mainWindow;
 
 @property (strong, nonatomic) NSNumber *lastEventId;
 @property (nonatomic) FSEventStreamRef stream;

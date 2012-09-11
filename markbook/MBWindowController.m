@@ -104,6 +104,7 @@
 @synthesize addButton;
 @synthesize delButton;
 @synthesize alertWindow;
+@synthesize mainWindow;
 @synthesize stream;
 @synthesize lastEventId;
 @synthesize fm;
@@ -228,23 +229,26 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         return;
     }
     NSString *path = [[[[treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
-    NSLog(@"%@", path);
+    //NSLog(@"%@", path);
     NSAlert *theAlert = [[NSAlert alloc] init];
     [theAlert addButtonWithTitle:@"好"];
     [theAlert addButtonWithTitle:@"取消"];
     [theAlert setMessageText:[NSString stringWithFormat:@"确认删除文件 %@ ？", [path lastPathComponent]]];
-    [theAlert setAlertStyle:0];
-    NSInteger rCode = [theAlert runModal];
-    if (rCode == NSAlertFirstButtonReturn) {
-        NSLog(@"Move to trash");
-        [[NSWorkspace sharedWorkspace] recycleURLs:[NSArray arrayWithObjects:[NSURL fileURLWithPath:path], nil] completionHandler:^(NSDictionary *newURLs, NSError *error) {
+    [theAlert setAlertStyle:NSWarningAlertStyle];
+    [theAlert beginSheetModalForWindow:mainWindow modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void*) path];
+}
+
+- (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)path {
+    if (returnCode == NSAlertFirstButtonReturn) {
+        //NSLog(@"Move to trash");
+        [[NSWorkspace sharedWorkspace] recycleURLs:[NSArray arrayWithObjects:[NSURL fileURLWithPath:(__bridge NSString *)path], nil] completionHandler:^(NSDictionary *newURLs, NSError *error) {
             if (error != nil) {
             }
         }];
-    } else if (rCode == NSAlertSecondButtonReturn) {
-        NSLog(@"Cancle");
+    } else if (returnCode == NSAlertSecondButtonReturn) {
+        //NSLog(@"Cancle");
     } else {
-        NSLog(@"other");
+        //NSLog(@"other");
     }
 }
 
@@ -252,7 +256,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     NSArray *nodes = [fm contentsOfDirectoryAtPath:path error:nil];
     BOOL isDir;
     
-    NSLog(@"%@", path);
+    //NSLog(@"%@", path);
     
     if ( ![fm fileExistsAtPath:path isDirectory:&isDir]) {
         NSLog(@"ERROR: path NOT exist: %@", path);
