@@ -224,7 +224,28 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 }
 
 - (IBAction)delFileAction:(id)sender {
-    [self showWindow:alertWindow];
+    if ([[treeController selectedNodes] count] == 0) {
+        return;
+    }
+    NSString *path = [[[[treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
+    NSLog(@"%@", path);
+    NSAlert *theAlert = [[NSAlert alloc] init];
+    [theAlert addButtonWithTitle:@"好"];
+    [theAlert addButtonWithTitle:@"取消"];
+    [theAlert setMessageText:[NSString stringWithFormat:@"确认删除文件 %@ ？", [path lastPathComponent]]];
+    [theAlert setAlertStyle:0];
+    NSInteger rCode = [theAlert runModal];
+    if (rCode == NSAlertFirstButtonReturn) {
+        NSLog(@"Move to trash");
+        [[NSWorkspace sharedWorkspace] recycleURLs:[NSArray arrayWithObjects:[NSURL fileURLWithPath:path], nil] completionHandler:^(NSDictionary *newURLs, NSError *error) {
+            if (error != nil) {
+            }
+        }];
+    } else if (rCode == NSAlertSecondButtonReturn) {
+        NSLog(@"Cancle");
+    } else {
+        NSLog(@"other");
+    }
 }
 
 - (void) addModifiedFilesAtPath: (NSString *)path {
