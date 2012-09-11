@@ -269,6 +269,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     } else {
         [fm createDirectoryAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:path] withIntermediateDirectories:YES attributes:NULL error:nil];
         [pathInfos setObject:nodes forKey:path];
+        //NSLog(@"add observer: %@", path);
         return;
     }
     
@@ -283,6 +284,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         NSArray *newNodes = [fm contentsOfDirectoryAtPath:path error:nil];
         NSArray *oldNodes = [pathInfos objectForKey:path];
         for (NSString *node in newNodes) {
+            //NSLog(@"new node: %@", node);
             if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
                 if ( [oldNodes containsObject:node]) {
                     NSString *fullPath = [path stringByAppendingPathComponent:node];
@@ -291,7 +293,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                     
                     if ([pathInfos objectForKey:path]) {
                         if ([modDate compare:[pathInfos objectForKey:fullPath]] == NSOrderedDescending) {
-                            NSLog(@"file changed: %@", node);
+                            //NSLog(@"file changed: %@", node);
                             if ([[node pathExtension] isEqualToString:@"rst"]) {
                                 [self rst2html:fullPath];
                             } else if ([[node pathExtension] isEqualToString:@"md"] || [[node pathExtension] isEqualToString:@"markdown"]) {
@@ -400,12 +402,13 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 
     NSString *string = [[NSString alloc] initWithData:[file readDataToEndOfFile] encoding:NSUTF8StringEncoding];
     string = [NSString stringWithFormat:@"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>  </head><body> %@ </body></html>", string];
-    NSLog(@"%@", dest);
+    //NSLog(@"%@", dest);
     [string writeToFile:dest atomically:YES encoding:NSUTF8StringEncoding error:nil];
 }
 
 - (NSIndexPath*)indexPathOfString:(NSString *)path
 {
+    //NSLog(@"search for path: %@", path);
     return [self indexPathOfString:path inNodes:[[treeController arrangedObjects] childNodes]];
 }
 
@@ -413,7 +416,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 {
     for(NSTreeNode* node in nodes)
     {
-        //NSLog(@"%@", [[node representedObject] urlString]);
+        //NSLog(@"compare with %@", [[node representedObject] urlString]);
         if([[[node representedObject] urlString] isEqualToString:path]) {
             return [node indexPath];
         }
@@ -646,13 +649,15 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 }
 
 - (NSArray *)recurise:(NSString *)path{
+    path = [NSString stringWithFormat:@"%@/", path];
     NSMutableArray *arr = [[NSMutableArray alloc] initWithCapacity:100];
-    BOOL isDir = NO;
     
     NSArray *nodes = [fm contentsOfDirectoryAtPath:path error:nil];
     [fm createDirectoryAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:path] withIntermediateDirectories:YES attributes:NULL error:nil];
     [pathInfos setObject:nodes forKey:path];
+    //NSLog(@"add observer: %@", path);
     
+    BOOL isDir = NO;
     for (NSString *file in nodes) {
         if ([file isEqualToString:@".git"]) {
             continue;
@@ -752,8 +757,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	buildingOutlineView = YES;		// indicate to ourselves we are building the default tree at startup
 	[myOutlineView setHidden:YES];	// hide the outline view - don't show it as we are building the contents
 	
-    NSString *notesPath = [NSString stringWithFormat:@"%@/", [root stringByAppendingPathComponent:@"notes"]];
-    NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:notesPath], @"group", [self recurise:notesPath], @"entries", notesPath, KEY_URL, nil];
+    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
+    NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:notesPath], @"group", [self recurise:notesPath], @"entries", [NSString stringWithFormat:@"%@/", notesPath], KEY_URL, nil];
     NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
     [self addEntries:(NSDictionary *)entries atIndexPath:(NSIndexPath*)@""];
 	

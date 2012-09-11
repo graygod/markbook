@@ -58,7 +58,6 @@ task :zip do |t|
 </item>
     ' % [version_str, version, version_str, version, `date`.rstrip, filename, version_str, version, length, signature]
     puts str
-	#sh 'git log --pretty=oneline | wc -l'
 end
 
 task :run => :xcode do |t|
