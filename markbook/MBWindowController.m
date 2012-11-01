@@ -100,7 +100,6 @@
 @synthesize dragNodesArray;
 @synthesize currentView;
 @synthesize retargetWebView;
-@synthesize delegate;
 @synthesize addButton;
 @synthesize delButton;
 @synthesize alertWindow;
@@ -341,7 +340,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         return;
     }
 
-    NSString *dest = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:path]];
+    NSString *dest = [NSString stringWithFormat:@"%@.html", [[root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
     NSString *parent_path = [dest stringByDeletingLastPathComponent];
     if ( ! [fm fileExistsAtPath:parent_path isDirectory:nil]) {
         [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
@@ -370,7 +369,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         return;
     }
 
-    NSString *dest = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:path]];
+    NSString *dest = [NSString stringWithFormat:@"%@.html", [[root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
     NSString *parent_path = [dest stringByDeletingLastPathComponent];
     if ( ! [fm fileExistsAtPath:parent_path isDirectory:nil]) {
         [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
@@ -714,7 +713,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                 // forus to their text fields - we want to keep our outline view in focus.
                 retargetWebView = YES;	
 
-                NSString *dest_path = [NSString stringWithFormat:@"%@.html", [NSTemporaryDirectory() stringByAppendingPathComponent:urlStr]];
+                NSString *dest_path = [NSString stringWithFormat:@"%@.html", [[root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
                 //NSLog(@"%@", dest_path);
                 
                 if ( ! [fm fileExistsAtPath:dest_path isDirectory:nil]) {
@@ -858,7 +857,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 }
 
 - (NSString *)getHtmlPath:(NSString *)path {
-    return [[NSTemporaryDirectory() stringByAppendingPathComponent:path] stringByAppendingPathExtension:@"html"];
+    return [[[root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path] stringByAppendingPathExtension:@"html"];
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView shouldEditTableColumn:(NSTableColumn *)tableColumn item:(id)item

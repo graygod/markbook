@@ -34,28 +34,28 @@ task :install do |t|
 	sh "sudo cp -rf /tmp/MarkBook/MarkBook.app /Applications"
 end
 
-task :zip do |t|
-	tag = `git describe --tag`.rstrip
-	filename= "MarkBook_%s.zip" % tag
-	sh "zip -r ~/Downloads/%s /tmp/MarkBook/MarkBook.app > /dev/null" % filename
+task :zip => :xcode do |t|
+	filename= "MarkBook_%s.zip" % `git describe --tag`.rstrip
+    File.exists?("~/Downloads/%s" % filename) and sh "rm ~/Downloads/%s" % filename
+	sh "cd /tmp/MarkBook;zip -r ~/Downloads/%s MarkBook.app > /dev/null" % filename
 	signature = IO.popen("sign_update.rb ~/Downloads/%s ~/.ssh/dsa_priv.pem" % filename).gets().rstrip
     version_str = `defaults read \`pwd\`/markbook/MarkBook.xcodeproj-Info CFBundleShortVersionString`.rstrip
     version = `defaults read \`pwd\`/markbook/MarkBook.xcodeproj-Info CFBundleVersion`.rstrip
 	length = IO.popen("stat -f %%z ~/Downloads/%s" % filename).gets().rstrip
 
     str = '
-<item> 
-    <title>MarkBook %s(%s)</title> 
-    <description><![CDATA[ 
-        <h2> MarkBook %s(%s) Changelog</h2> 
-        <ul> 
-            <li> [NEW] </li>
-            <li> [FIX] </li>
-        </ul>
-    ]]></description> 
-    <pubDate>%s</pubDate> 
-    <enclosure url="https://amoblin.googlecode.com/files/%s" sparkle:shortVersionString="%s" sparkle:version="%s" length="%s" type="application/octet-stream" sparkle:dsaSignature="%s" /> 
-</item>
+        <item>
+            <title>MarkBook %s(%s)</title>
+            <description><![CDATA[
+                <h2> MarkBook %s(%s) Changelog</h2>
+                <ul>
+                    <li> [NEW] </li>
+                    <li> [FIX] </li>
+                </ul>
+            ]]></description>
+            <pubDate>%s</pubDate>
+            <enclosure url="https://amoblin.googlecode.com/files/%s" sparkle:shortVersionString="%s" sparkle:version="%s" length="%s" type="application/octet-stream" sparkle:dsaSignature="%s" />
+        </item>
     ' % [version_str, version, version_str, version, `date`.rstrip, filename, version_str, version, length, signature]
     puts str
 end

@@ -8,7 +8,6 @@
 
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
-#import "MBAppDelegate.h"
 
 @class SeparatorCell;
 
@@ -27,7 +26,6 @@
 @property (strong) NSArray *dragNodesArray;
 @property (strong) NSView *currentView;
 @property (nonatomic) BOOL retargetWebView;
-@property (strong) IBOutlet MBAppDelegate *delegate;
 @property (weak) IBOutlet NSButton *addButton;
 @property (weak) IBOutlet NSButton *delButton;
 @property (strong) IBOutlet NSWindow *alertWindow;
