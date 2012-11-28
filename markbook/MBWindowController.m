@@ -730,6 +730,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
                 } else {
                     [webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
                 }
+                [webView layout];
             }
             
             NSRect newBounds;

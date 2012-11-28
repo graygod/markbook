@@ -17,7 +17,7 @@
 @property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 
 @property (strong) MBWindowController *myWindowController;
-@property (weak) IBOutlet NSWindow *preferencesWindow;
+@property (strong) IBOutlet NSWindow *preferencesWindow;
 - (IBAction)showPreferencesWindow:(id)sender;
 - (IBAction)setEditorAction:(id)sender;
 @property (weak) IBOutlet NSPopUpButton *selectAppPopUpButton;
