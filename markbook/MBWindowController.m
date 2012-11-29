@@ -114,7 +114,7 @@
     self = [super initWithWindow:window];
     if (self) {
         // Initialization code here.
-        root = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook/"];
+        root = [NSHomeDirectory() stringByAppendingPathComponent:@".MarkBook/"];
 
         if ( ! [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"]) {
             [[NSUserDefaults standardUserDefaults] setObject:@"TextEdit" forKey:@"editor"];
@@ -131,7 +131,7 @@
         fm = [NSFileManager defaultManager];
         pathInfos = [[NSMutableDictionary alloc] initWithCapacity:300];
         
-        NSString *notes_path = [NSHomeDirectory() stringByAppendingPathComponent:@"MarkBook/notes"];
+        NSString *notes_path = [root stringByAppendingPathComponent:@"notes"];
         if ( ! [fm fileExistsAtPath:notes_path]) {
             [fm createDirectoryAtPath:notes_path withIntermediateDirectories:YES attributes:NULL error:nil];
             [fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"] toPath:[notes_path stringByAppendingPathComponent:@"welcome.rst"] error:nil];
