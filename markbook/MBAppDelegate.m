@@ -8,6 +8,7 @@
 
 #import "MBAppDelegate.h"
 #import "MBWindowController.h"
+#import "PFMoveApplication.h"
 
 @implementation MBAppDelegate
 @synthesize selectAppPopUpButton = _selectAppPopUpButton;
@@ -21,6 +22,7 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+    PFMoveToApplicationsFolderIfNecessary();
     // Insert code here to initialize your application
     myWindowController = [[MBWindowController alloc] initWithWindowNibName:@"MBWindowController"];
     [myWindowController showWindow:self];
