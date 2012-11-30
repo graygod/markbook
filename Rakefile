@@ -7,13 +7,6 @@ task :info do |t|
     puts `defaults read \`pwd\`/markbook/MarkBook.xcodeproj-Info CFBundleVersion`
 end
 
-task :rev do |t|
-    revision = `git log --pretty=oneline | wc -l`
-	sh "defaults write `pwd`/markbook/MarkBook.xcodeproj-Info CFBundleVersion %s" % revision
-	sh "git add -u"
-	sh "git ci --amend"
-end
-
 task :xcode do |t|
 	sh "xcodebuild"
     File.directory?"/tmp/MarkBook" or `mkdir /tmp/MarkBook`
@@ -23,7 +16,7 @@ end
 
 task :dmg do |t|
 	tag = `git describe --tag`
-	filename = "MarkBook_%s.dmg" % tag
+	filename = "MarkBook_%s.dmg" % tag.rstrip
 	sh "ln -sf /Applications /tmp/MarkBook"
 	sh "rm -rf ~/Downloads/%s" % filename
 	sh "hdiutil create ~/Downloads/%s -srcfolder /tmp/MarkBook" % filename
