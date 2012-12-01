@@ -40,6 +40,7 @@
     self = [super initWithWindow:window];
     if (self) {
         // Initialization code here.
+        self.fm = [NSFileManager defaultManager];
         self.core = [[MBCore alloc] init];
 
         if ( ! [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"]) {
@@ -53,7 +54,6 @@
 		self.urlImage = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericURLIcon)];
 		[self.urlImage setSize:NSMakeSize(16,16)];
         
-        self.fm = [NSFileManager defaultManager];
     }
     return self;
 }
@@ -177,44 +177,13 @@
 	if ([selection count] > 0) {
         BaseNode *node = [[selection objectAtIndex:0] representedObject];
         NSString *urlStr = [node urlString];
-        [self.noteArray addObject:@"hello"];
-        //[self.myCollectionView reloadDataWithItems:dataSource emptyCaches:YES];
-        //[self.myCollectionView reloa]
 
         if (urlStr) {
             //NSURL *targetURL = [NSURL fileURLWithPath:urlStr];
-            
-            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[urlStr pathExtension]]) {
-                if (self.currentView != self.webView) {
-                    // change to web view
-                    [self removeSubview];
-                    self.currentView = nil;
-                    [self.placeHolderView addSubview:self.webView];
-                    self.currentView = self.webView;
-                }
-                
-                // this will tell our WebUIDelegate not to retarget first responder since some web pages force
-                // forus to their text fields - we want to keep our outline view in focus.
-                self.retargetWebView = YES;
-
-                NSString *dest_path = [NSString stringWithFormat:@"%@.html", [[self.core.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
-                //NSLog(@"%@", dest_path);
-                
-                if ( ! [self.fm fileExistsAtPath:dest_path isDirectory:nil]) {
-                    //NSLog(@"url file is not existed. generating");
-                    //[self performSelectorOnMainThread:@selector(rst2html:) withObject:urlStr waitUntilDone:YES];
-                    if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
-                        [self.core rst2html:urlStr];
-                    } else if ([[urlStr pathExtension] isEqualToString:@"md"] || [[urlStr pathExtension] isEqualToString:@"markdown"]) {
-                        [self.core md2html:urlStr];
-                    }
-                }
-                if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
-                    [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-                } else {
-                    [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-                }
-                [self.webView layout];
+            NSArray *notes = [self.core listDirectory:urlStr];
+            [self.noteArray setContent:nil];
+            for (NoteSnap *note in notes) {
+                [self.noteArray addObject:note];
             }
             
             NSRect newBounds;
@@ -234,6 +203,44 @@
             self.currentView = nil;
         }
     }
+}
+
+- (void)showNote {
+    NSLog(@"%@", self.noteArray.selectionIndexes);
+    /*
+    if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[urlStr pathExtension]]) {
+        if (self.currentView != self.webView) {
+            // change to web view
+            [self removeSubview];
+            self.currentView = nil;
+            [self.placeHolderView addSubview:self.webView];
+            self.currentView = self.webView;
+        }
+        
+        // this will tell our WebUIDelegate not to retarget first responder since some web pages force
+        // forus to their text fields - we want to keep our outline view in focus.
+        self.retargetWebView = YES;
+
+        NSString *dest_path = [NSString stringWithFormat:@"%@.html", [[self.core.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
+        //NSLog(@"%@", dest_path);
+        
+        if ( ! [self.fm fileExistsAtPath:dest_path isDirectory:nil]) {
+            //NSLog(@"url file is not existed. generating");
+            //[self performSelectorOnMainThread:@selector(rst2html:) withObject:urlStr waitUntilDone:YES];
+            if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
+                [self.core rst2html:urlStr];
+            } else if ([[urlStr pathExtension] isEqualToString:@"md"] || [[urlStr pathExtension] isEqualToString:@"markdown"]) {
+                [self.core md2html:urlStr];
+            }
+        }
+        if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
+            [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+        } else {
+            [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+        }
+        [self.webView layout];
+    }
+    */
 }
 
 - (void)populateOutlineContents:(id)inObject
@@ -304,7 +311,6 @@
 	return returnCell;
 }
 
-
 // -------------------------------------------------------------------------------
 //	removeSubview
 // -------------------------------------------------------------------------------
@@ -351,51 +357,39 @@
 // -------------------------------------------------------------------------------
 //	outlineView:willDisplayCell:forTableColumn:item
 // -------------------------------------------------------------------------------
-- (void)outlineView:(NSOutlineView *)olv willDisplayCell:(NSCell*)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item
-{
-	if ([[tableColumn identifier] isEqualToString:COLUMNID_NAME])
-	{
+- (void)outlineView:(NSOutlineView *)olv willDisplayCell:(NSCell*)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item {
+	if ([[tableColumn identifier] isEqualToString:COLUMNID_NAME]) {
 		// we are displaying the single and only column
-		if ([cell isKindOfClass:[ImageAndTextCell class]])
-		{
+		if ([cell isKindOfClass:[ImageAndTextCell class]]) {
 			item = [item representedObject];
-			if (item)
-			{
-				if ([item isLeaf])
-				{
+			if (item) {
+				if ([item isLeaf]) {
 					// does it have a URL string?
 					NSString *urlStr = [item urlString];
-					if (urlStr)
-					{
-						if ([item isLeaf])
-						{
+					if (urlStr) {
+						if ([item isLeaf]) {
+                            /*
 							NSImage *iconImage;
-							if ([[item urlString] hasPrefix:HTTP_PREFIX])
+							if ([[item urlString] hasPrefix:HTTP_PREFIX]) {
 								iconImage = self.urlImage;
-							else
+                            } else {
 								iconImage = [[NSWorkspace sharedWorkspace] iconForFile:urlStr];
+                            }
 							[item setNodeIcon:iconImage];
-						}
-						else
-						{
+                            */
+                            [item setNodeIcon:self.folderImage];
+						} else {
 							NSImage* iconImage = [[NSWorkspace sharedWorkspace] iconForFile:urlStr];
 							[item setNodeIcon:iconImage];
 						}
-					}
-					else
-					{
+					} else {
 						// it's a separator, don't bother with the icon
 					}
-				}
-				else
-				{
+				} else {
 					// check if it's a special folder (DEVICES or PLACES), we don't want it to have an icon
-					if ([self isSpecialGroup:item])
-					{
+					if ([self isSpecialGroup:item]) {
 						[item setNodeIcon:nil];
-					}
-					else
-					{
+					} else {
 						// it's a folder, use the folderImage as its icon
 						[item setNodeIcon:self.folderImage];
 					}
@@ -599,8 +593,7 @@
 //
 //	Handle dropping a raw URL.
 // -------------------------------------------------------------------------------
-- (void)handleURLBasedDrops:(NSPasteboard *)pboard withIndexPath:(NSIndexPath *)indexPath
-{
+- (void)handleURLBasedDrops:(NSPasteboard *)pboard withIndexPath:(NSIndexPath *)indexPath {
 	NSURL *url = [NSURL URLFromPasteboard:pboard];
 	if (url)
 	{

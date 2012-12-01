@@ -230,7 +230,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     path = [NSString stringWithFormat:@"%@/", path];
     NSMutableArray *arr = [[NSMutableArray alloc] initWithCapacity:100];
     
-    self.fm = [NSFileManager defaultManager];
     NSArray *nodes = [self.fm contentsOfDirectoryAtPath:path error:nil];
     [self.fm createDirectoryAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:path] withIntermediateDirectories:YES attributes:NULL error:nil];
     [self.pathInfos setObject:nodes forKey:path];
@@ -246,13 +245,13 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
         if (isDir) {
             NSArray *entries = [self recurise:fullPath];
             fullPath = [NSString stringWithFormat:@"%@/", fullPath];
-            [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", fullPath, @"url", nil]];
+            [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"name", entries, @"entries", fullPath, @"url", nil]];
         } else {
             if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[file pathExtension]] ) {
                 NSDictionary *attributes = [self.fm attributesOfItemAtPath:fullPath error:NULL];
                 NSDate *modDate = [attributes objectForKey:NSFileModificationDate];
                 [self.pathInfos setObject:modDate forKey:fullPath];
-                [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:[file stringByDeletingPathExtension], @"name", fullPath, @"url", nil]];
+                //[arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:[file stringByDeletingPathExtension], @"name", fullPath, @"url", nil]];
             }
         }
     }
@@ -528,6 +527,24 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     [string writeToFile:dest atomically:YES encoding:NSUTF8StringEncoding error:nil];
 }
 
+- (NSArray *) listDirectory:(NSString *)path {
+    NSArray *nodes = [self.fm contentsOfDirectoryAtPath:path error:nil];
+    NSMutableArray *arrays = [[NSMutableArray alloc] initWithCapacity:100];
+    for(NSString *node in nodes) {
+        NoteSnap* note = [[NoteSnap alloc] initWithUrl:node];
+        [arrays addObject:note];
+    }
+    return arrays;
+}
 
+@end
+
+@implementation NoteSnap
+
+- (id) initWithUrl:(NSString *)url {
+    self.title = [url stringByDeletingPathExtension];
+    self.abstract = @"Abstract...";
+	return self;
+}
 
 @end

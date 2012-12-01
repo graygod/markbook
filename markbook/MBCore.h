@@ -28,5 +28,13 @@
 - (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select;
 
 - (NSArray *)recurise:(NSString *)dir;
+- (NSArray *) listDirectory:(NSString *)path;
+@end
 
+@interface NoteSnap: NSObject
+
+@property (strong) NSString *title;
+@property (strong) NSString *abstract;
+
+- (id) initWithUrl:(NSString *)path;
 @end
