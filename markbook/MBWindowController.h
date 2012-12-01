@@ -10,7 +10,9 @@
 #import <WebKit/WebKit.h>
 #import "MBCore.h"
 
-@class SeparatorCell;
+@interface SnapBox : NSBox
+@property (strong) IBOutlet id delegate;
+@end
 
 @interface MBWindowController : NSWindowController
 
@@ -23,7 +25,6 @@
 
 @property (strong) NSImage *folderImage;
 @property (strong) NSImage *urlImage;
-@property (strong) SeparatorCell *separatorCell;
 @property (strong) NSArray *dragNodesArray;
 @property (strong) NSView *currentView;
 @property (nonatomic) BOOL retargetWebView;

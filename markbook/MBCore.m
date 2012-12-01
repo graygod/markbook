@@ -121,8 +121,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
         NSLog(@"ERROR: path NOT exist: %@", path);
         return;
     }
-    //NSDictionary *attributes = [self.fm attributesOfItemAtPath:path error:NULL];
-    //NSDate *modDate = [attributes objectForKey:NSFileModificationDate];
     
     if ([self.pathInfos objectForKey:path]) {
     } else {
@@ -138,77 +136,75 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     }
     
     NSIndexPath *indexPath = [self indexPathOfString:path];
-    if (indexPath) {
-        //NSLog(@"index path: %@", indexPath);
-        NSArray *newNodes = [self.fm contentsOfDirectoryAtPath:path error:nil];
-        NSArray *oldNodes = [self.pathInfos objectForKey:path];
-        for (NSString *node in newNodes) {
-            //NSLog(@"new node: %@", node);
-            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
-                if ( [oldNodes containsObject:node]) {
-                    NSString *fullPath = [path stringByAppendingPathComponent:node];
-                    NSDictionary *attributes = [self.fm attributesOfItemAtPath:fullPath error:NULL];
-                    NSDate *modDate = [attributes objectForKey:NSFileModificationDate];
-                    
-                    if ([self.pathInfos objectForKey:path]) {
-                        if ([modDate compare:[self.pathInfos objectForKey:fullPath]] == NSOrderedDescending) {
-                            NSLog(@"file changed: %@", node);
-                            if ([[node pathExtension] isEqualToString:@"rst"]) {
-                                [self rst2html:fullPath];
-                            } else if ([[node pathExtension] isEqualToString:@"md"] || [[node pathExtension] isEqualToString:@"markdown"]) {
-                                [self md2html:fullPath];
-                            }
-                            //[webView reload:self];
-                        }
-                    }
-                    [self.pathInfos setObject:modDate forKey:fullPath];
-                } else {
-                    NSString *fullPath = [path stringByAppendingPathComponent:node];
-                    [self addChild:fullPath withName:[node stringByDeletingPathExtension] selectParent:YES];
-                    NSLog(@"append child: %@", node);
-                }
-            }
-        }
-        
-        for (NSString *node in oldNodes) {
-            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
-                if ( ![newNodes containsObject:node]) {
-                    NSLog(@"remove: %@", node);
-                    NSString *fullPath = [path stringByAppendingPathComponent:node];
-                    //should remove in tree
-                    NSIndexPath *nodeIndex = [self indexPathOfString:fullPath];
-                    if (nodeIndex) {
-                        [self.treeController removeObjectAtArrangedObjectIndexPath:nodeIndex];
-                    }
-                }
-            }
-        }
-        [self.pathInfos setObject:newNodes forKey:path];
-        if (prePath) {
-            //NSLog(@"reselect previous one");
-            [self.treeController setSelectionIndexPath:[self indexPathOfString:prePath]];
-        }
-    } else {
+    if ( ! indexPath) {
         NSLog(@"new dir: %@", path);
+        return;
+    }
+    //NSLog(@"index path: %@", indexPath);
+    NSArray *newNodes = [self.fm contentsOfDirectoryAtPath:path error:nil];
+    NSArray *oldNodes = [self.pathInfos objectForKey:path];
+    for (NSString *node in newNodes) {
+        //NSLog(@"new node: %@", node);
+        if (! [[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
+            continue;
+        }
+        if ( [oldNodes containsObject:node]) {
+            NSString *fullPath = [path stringByAppendingPathComponent:node];
+            NSDictionary *attributes = [self.fm attributesOfItemAtPath:fullPath error:NULL];
+            NSDate *modDate = [attributes objectForKey:NSFileModificationDate];
+            
+            if ([self.pathInfos objectForKey:path]) {
+                if ([modDate compare:[self.pathInfos objectForKey:fullPath]] == NSOrderedDescending) {
+                    NSLog(@"file changed: %@", node);
+                    if ([[node pathExtension] isEqualToString:@"rst"]) {
+                        [self rst2html:fullPath];
+                    } else if ([[node pathExtension] isEqualToString:@"md"] || [[node pathExtension] isEqualToString:@"markdown"]) {
+                        [self md2html:fullPath];
+                    }
+                    //[webView reload:self];
+                }
+            }
+            [self.pathInfos setObject:modDate forKey:fullPath];
+        } else {
+            NSString *fullPath = [path stringByAppendingPathComponent:node];
+            [self addChild:fullPath withName:[node stringByDeletingPathExtension] selectParent:YES];
+            NSLog(@"append child: %@", node);
+        }
+    }
+    
+    for (NSString *node in oldNodes) {
+        if ( ! [[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
+            continue;
+        }
+        if ( ![newNodes containsObject:node]) {
+            NSLog(@"remove: %@", node);
+            NSString *fullPath = [path stringByAppendingPathComponent:node];
+            //should remove in tree
+            NSIndexPath *nodeIndex = [self indexPathOfString:fullPath];
+            if (nodeIndex) {
+                [self.treeController removeObjectAtArrangedObjectIndexPath:nodeIndex];
+            }
+        }
+    }
+    [self.pathInfos setObject:newNodes forKey:path];
+    if (prePath) {
+        //NSLog(@"reselect previous one");
+        [self.treeController setSelectionIndexPath:[self indexPathOfString:prePath]];
     }
 }
 
-- (NSIndexPath*)indexPathOfString:(NSString *)path
-{
+- (NSIndexPath*)indexPathOfString:(NSString *)path {
     //NSLog(@"search for path: %@", path);
     return [self indexPathOfString:path inNodes:[[self.treeController arrangedObjects] childNodes]];
 }
 
-- (NSIndexPath*)indexPathOfString:(NSString *)path inNodes:(NSArray*)nodes
-{
-    for(NSTreeNode* node in nodes)
-    {
+- (NSIndexPath*)indexPathOfString:(NSString *)path inNodes:(NSArray*)nodes {
+    for(NSTreeNode* node in nodes) {
         //NSLog(@"compare with %@", [[node representedObject] urlString]);
         if([[[node representedObject] urlString] isEqualToString:path]) {
             return [node indexPath];
         }
-        if([[node childNodes] count])
-        {
+        if([[node childNodes] count]) {
             NSIndexPath* indexPath = [self indexPathOfString:path inNodes:[node childNodes]];
             if(indexPath)
                 return indexPath;
@@ -226,7 +222,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 	self.buildingOutlineView = NO;		// we're done building our default tree
 }
 
-- (NSArray *)recurise:(NSString *)path{
+- (NSArray *)recurise:(NSString *)path {
     path = [NSString stringWithFormat:@"%@/", path];
     NSMutableArray *arr = [[NSMutableArray alloc] initWithCapacity:100];
     
@@ -251,7 +247,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
                 NSDictionary *attributes = [self.fm attributesOfItemAtPath:fullPath error:NULL];
                 NSDate *modDate = [attributes objectForKey:NSFileModificationDate];
                 [self.pathInfos setObject:modDate forKey:fullPath];
-                //[arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:[file stringByDeletingPathExtension], @"name", fullPath, @"url", nil]];
             }
         }
     }
@@ -279,7 +274,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 				NSString *folderName = [entry objectForKey:KEY_GROUP];
                 [self addFolder:folderName withURL:urlStr atIndexPath:indexPath];
 				
-				// add its children
 				NSDictionary *newChildren = [entry objectForKey:KEY_ENTRIES];
                 [self addEntries:newChildren atIndexPath:(NSIndexPath*)@""];
 				
@@ -293,16 +287,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 	}
 	
 	// inserting children automatically expands its parent, we want to close it
-    if (self.buildingOutlineView) {
-        if ([[self.treeController selectedNodes] count] > 0)
-        {
-            NSTreeNode *lastSelectedNode = [[self.treeController selectedNodes] objectAtIndex:0];
-            if ([[self.fm displayNameAtPath:[[lastSelectedNode representedObject] urlString]] isEqualToString:@"notes"]) {
-                return;
-            }
-            //[myOutlineView collapseItem:lastSelectedNode];
-        }
-    }
+    //NSTreeNode *lastSelectedNode = [[self.treeController selectedNodes] objectAtIndex:0];
+    //[myOutlineView collapseItem:lastSelectedNode];
 }
 
 - (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select {

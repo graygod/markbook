@@ -9,8 +9,6 @@
 #import "MBWindowController.h"
 #import "ChildNode.h"
 #import "ImageAndTextCell.h"
-#import "SeparatorCell.h"
-
 
 #define COLUMNID_NAME			@"NameColumn"	// the single column name in our outline view
 #define INITIAL_INFODICT		@"Outline"		// name of the dictionary file to populate our outline view
@@ -75,16 +73,13 @@
     [self.addButton setImage:[NSImage imageNamed:NSImageNameAddTemplate]];
     [self.delButton setImage:[NSImage imageNamed:NSImageNameRemoveTemplate]];
     
-	self.separatorCell = [[SeparatorCell alloc] init];
-    [self.separatorCell setEditable:NO];
-    
 	[NSThread detachNewThreadSelector:	@selector(populateOutlineContents:)
 										toTarget:self		// we are the target
 										withObject:nil];
     
 	[self.myOutlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
-    [self.myOutlineView setDoubleAction:@selector(openNote:)];
-    [self.myOutlineView setTarget:self];
+    //[self.myOutlineView setDoubleAction:@selector(openNote:)];
+    //[self.myOutlineView setTarget:self];
     
     [self.noteArray addObserver:self forKeyPath:@"selectionIndexes" options:NSKeyValueObservingOptionNew context:nil];
 }
@@ -252,8 +247,7 @@
     }
 }
 
-- (void)populateOutlineContents:(id)inObject
-{
+- (void)populateOutlineContents:(id)inObject {
 	[self.myOutlineView setHidden:YES];	// hide the outline view - don't show it as we are building the contents
 	
     [self.treeController setContent:self.core.treeController.content];
@@ -261,14 +255,10 @@
 	// remove the current selection
 	NSArray *selection = [self.treeController selectionIndexPaths];
 	[self.treeController removeSelectionIndexPaths:selection];
-    //NSLog(@"%@", [self.treeController.arrangedObjects childNodes]);
-    NSLog(@"%@", self.treeController.childrenKeyPath);
-    NSLog(@"%@", self.treeController.leafKeyPath);
     
-	[self.myOutlineView setHidden:NO];	// we are done populating the outline view content, show it again
-	
+	[self.myOutlineView setHidden:NO];
+    [self.myOutlineView expandItem:[[[self.treeController arrangedObjects] childNodes] objectAtIndex:0]];
 }
-
 
 #pragma mark - Node checks
 
@@ -305,17 +295,8 @@
 // -------------------------------------------------------------------------------
 //	dataCellForTableColumn:tableColumn:item
 // -------------------------------------------------------------------------------
-- (NSCell *)outlineView:(NSOutlineView *)outlineView dataCellForTableColumn:(NSTableColumn *)tableColumn item:(id)item
-{
+- (NSCell *)outlineView:(NSOutlineView *)outlineView dataCellForTableColumn:(NSTableColumn *)tableColumn item:(id)item {
 	NSCell *returnCell = [tableColumn dataCell];
-	
-	if ([[tableColumn identifier] isEqualToString:COLUMNID_NAME])
-	{
-		// we are being asked for the cell for the single and only column
-		BaseNode *node = [item representedObject];
-		if ([self isSeparator:node])
-            returnCell = self.separatorCell;
-	}
 	
 	return returnCell;
 }
@@ -665,14 +646,11 @@
 	
 	// find the index path to insert our dropped object(s)
 	NSIndexPath *indexPath;
-	if (targetItem)
-	{
+	if (targetItem) {
 		// drop down inside the tree node:
 		// feth the index path to insert our dropped node
 		indexPath = [[targetItem indexPath] indexPathByAddingIndex:index];
-	}
-	else
-	{
+	} else {
 		// drop at the top root level
 		if (index == -1)	// drop area might be ambibuous (not at a particular location)
 			indexPath = [NSIndexPath indexPathWithIndex:[self.core.contents count]]; // drop at the end of the top level
@@ -683,32 +661,59 @@
 	NSPasteboard *pboard = [info draggingPasteboard];	// get the pasteboard
 	
 	// check the dragging type -
-	if ([pboard availableTypeFromArray:[NSArray arrayWithObject:kNodesPBoardType]])
-	{
+	if ([pboard availableTypeFromArray:[NSArray arrayWithObject:kNodesPBoardType]]) {
 		// user is doing an intra-app drag within the outline view
 		[self handleInternalDrops:pboard withIndexPath:indexPath];
 		result = YES;
-	}
-	else if ([pboard availableTypeFromArray:[NSArray arrayWithObject:@"WebURLsWithTitlesPboardType"]])
-	{
+	} else if ([pboard availableTypeFromArray:[NSArray arrayWithObject:@"WebURLsWithTitlesPboardType"]]) {
 		// the user is dragging URLs from Safari
 		[self handleWebURLDrops:pboard withIndexPath:indexPath];		
 		result = YES;
-	}
-	else if ([pboard availableTypeFromArray:[NSArray arrayWithObject:NSFilenamesPboardType]])
-	{
+	} else if ([pboard availableTypeFromArray:[NSArray arrayWithObject:NSFilenamesPboardType]]) {
 		// the user is dragging file-system based objects (probably from Finder)
 		[self handleFileBasedDrops:pboard withIndexPath:indexPath];
 		result = YES;
-	}
-	else if ([pboard availableTypeFromArray:[NSArray arrayWithObject:NSURLPboardType]])
-	{
+	} else if ([pboard availableTypeFromArray:[NSArray arrayWithObject:NSURLPboardType]]) {
 		// handle dropping a raw URL
 		[self handleURLBasedDrops:pboard withIndexPath:indexPath];
 		result = YES;
 	}
 	
 	return result;
+}
+
+- (IBAction)doubleClick:(id)sender {
+    if ([[self.noteArray selectedObjects] count] == 1) {
+        NoteSnap *note = (NoteSnap *)[[self.noteArray selectedObjects] objectAtIndex:0];
+        NSLog(@"double click selection: %@", note.title);
+        NSString *app = [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"];
+        [[NSWorkspace sharedWorkspace] openFile:note.urlStr withApplication:app];
+    }
+}
+
+@end
+
+@implementation SnapBox
+
+- (NSView *)hitTest:(NSPoint)aPoint
+{
+    // don't allow any mouse clicks for subviews in this NSBox
+    if(NSPointInRect(aPoint,[self convertRect:[self bounds] toView:[self superview]])) {
+		return self;
+	} else {
+		return nil;
+	}
+}
+
+-(void)mouseDown:(NSEvent *)theEvent {
+	[super mouseDown:theEvent];
+    
+	// check for click count above one, which we assume means it's a double click
+	if([theEvent clickCount] > 1) {
+		if(self.delegate && [self.delegate respondsToSelector:@selector(doubleClick:)]) {
+        [self.delegate performSelector:@selector(doubleClick:) withObject:self];
+		}
+	}
 }
 
 @end
