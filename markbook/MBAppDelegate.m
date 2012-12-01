@@ -22,7 +22,7 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-    PFMoveToApplicationsFolderIfNecessary();
+    //PFMoveToApplicationsFolderIfNecessary();
     // Insert code here to initialize your application
     myWindowController = [[MBWindowController alloc] initWithWindowNibName:@"MBWindowController"];
     [myWindowController showWindow:self];

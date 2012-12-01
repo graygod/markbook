@@ -8,6 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
+#import "MBCore.h"
 
 @class SeparatorCell;
 
@@ -17,9 +18,9 @@
 @property (weak) IBOutlet NSOutlineView *myOutlineView;
 @property (strong) IBOutlet NSTreeController *treeController;
 @property (weak) IBOutlet NSView *placeHolderView;
+@property (weak) IBOutlet NSCollectionView *myCollectionView;
+@property (strong) IBOutlet NSArrayController *noteArray;
 
-@property (nonatomic) BOOL buildingOutlineView;
-@property (strong, nonatomic) NSMutableArray *contents;
 @property (strong) NSImage *folderImage;
 @property (strong) NSImage *urlImage;
 @property (strong) SeparatorCell *separatorCell;
@@ -31,18 +32,10 @@
 @property (strong) IBOutlet NSWindow *alertWindow;
 @property (strong) IBOutlet NSWindow *mainWindow;
 
-@property (strong, nonatomic) NSNumber *lastEventId;
-@property (nonatomic) FSEventStreamRef stream;
 @property (strong, nonatomic) NSFileManager *fm;
-@property (strong, nonatomic) NSMutableDictionary* pathInfos;
-@property (strong, nonatomic) NSString* root;
+@property (strong, nonatomic) MBCore *core;
 
 - (IBAction)addFileAction:(id)sender;
 - (IBAction)delFileAction:(id)sender;
-- (void) addModifiedFilesAtPath: (NSString *)path;
-- (NSArray *)recurise:(NSString *)dir;
-- (NSIndexPath*)indexPathOfString:(NSString *)path;
-- (void) rst2html:(NSString *)path;
-- (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select;
 
 @end

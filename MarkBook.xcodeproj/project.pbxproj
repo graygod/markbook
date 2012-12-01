@@ -16,6 +16,7 @@
 		DA43EC3C15F0CC7E00161D1E /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA43EC3B15F0CC7E00161D1E /* Sparkle.framework */; };
 		DA43EC3F15F0CD3200161D1E /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = DA43EC3B15F0CC7E00161D1E /* Sparkle.framework */; };
 		DA43EC4115F0CF8800161D1E /* dsa_pub.pem in Resources */ = {isa = PBXBuildFile; fileRef = DA43EC4015F0CF8800161D1E /* dsa_pub.pem */; };
+		DA44FAA91669BBC6004A7AD3 /* MBCore.m in Sources */ = {isa = PBXBuildFile; fileRef = DA44FAA81669BBC6004A7AD3 /* MBCore.m */; };
 		DA7491CA16672B1A001BC4A3 /* PFMoveApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = DA7491C916672B1A001BC4A3 /* PFMoveApplication.m */; };
 		DA7491CE16672B66001BC4A3 /* NSString+SymlinksAndAliases.m in Sources */ = {isa = PBXBuildFile; fileRef = DA7491CD16672B66001BC4A3 /* NSString+SymlinksAndAliases.m */; };
 		DA7491D416672D17001BC4A3 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA7491D316672D17001BC4A3 /* Security.framework */; };
@@ -73,6 +74,8 @@
 		DA16B3A615E66A0500D133C9 /* SeparatorCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SeparatorCell.m; sourceTree = "<group>"; };
 		DA43EC3B15F0CC7E00161D1E /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sparkle.framework; sourceTree = "<group>"; };
 		DA43EC4015F0CF8800161D1E /* dsa_pub.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dsa_pub.pem; sourceTree = "<group>"; };
+		DA44FAA71669BBC6004A7AD3 /* MBCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBCore.h; sourceTree = "<group>"; };
+		DA44FAA81669BBC6004A7AD3 /* MBCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBCore.m; sourceTree = "<group>"; };
 		DA7491C816672B1A001BC4A3 /* PFMoveApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PFMoveApplication.h; sourceTree = "<group>"; };
 		DA7491C916672B1A001BC4A3 /* PFMoveApplication.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PFMoveApplication.m; sourceTree = "<group>"; };
 		DA7491CC16672B66001BC4A3 /* NSString+SymlinksAndAliases.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+SymlinksAndAliases.h"; sourceTree = "<group>"; };
@@ -207,6 +210,8 @@
 				DAC3132515E5DE3B00261862 /* MBWindowController.h */,
 				DAC3132615E5DE3B00261862 /* MBWindowController.m */,
 				DAC3132715E5DE3B00261862 /* MBWindowController.xib */,
+				DA44FAA71669BBC6004A7AD3 /* MBCore.h */,
+				DA44FAA81669BBC6004A7AD3 /* MBCore.m */,
 				DAC3129B15E5C1CF00261862 /* markbook.xcdatamodeld */,
 				DAC3128A15E5C1CF00261862 /* Supporting Files */,
 			);
@@ -370,6 +375,7 @@
 				DA16B3A715E66A0500D133C9 /* SeparatorCell.m in Sources */,
 				DA7491CA16672B1A001BC4A3 /* PFMoveApplication.m in Sources */,
 				DA7491CE16672B66001BC4A3 /* NSString+SymlinksAndAliases.m in Sources */,
+				DA44FAA91669BBC6004A7AD3 /* MBCore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

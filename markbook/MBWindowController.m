@@ -12,8 +12,6 @@
 #import "SeparatorCell.h"
 
 
-#define EGGS_ROOT               @"/Applications/MarkBook.app/Contents/Resources/myeggs"
-
 #define COLUMNID_NAME			@"NameColumn"	// the single column name in our outline view
 #define INITIAL_INFODICT		@"Outline"		// name of the dictionary file to populate our outline view
 
@@ -32,111 +30,30 @@
 
 #define kNodesPBoardType		@"myNodesPBoardType"	// drag and drop pasteboard type
 
-#define KEY_NAME				@"name"
-#define KEY_URL					@"url"
-#define KEY_SEPARATOR			@"separator"
-#define KEY_GROUP				@"group"
-#define KEY_FOLDER				@"folder"
-#define KEY_ENTRIES				@"entries"
-
-
-// -------------------------------------------------------------------------------
-//	TreeAdditionObj
-//
-//	This object is used for passing data between the main and secondary thread
-//	which populates the outline view.
-// -------------------------------------------------------------------------------
-@interface TreeAdditionObj : NSObject
-{
-	NSIndexPath *indexPath;
-	NSString	*nodeURL;
-	NSString	*nodeName;
-	BOOL		selectItsParent;
-}
-
-@property (readonly) NSIndexPath *indexPath;
-@property (readonly) NSString *nodeURL;
-@property (readonly) NSString *nodeName;
-@property (readonly) BOOL selectItsParent;
-
-@end
-
-
-#pragma mark -
-
-@implementation TreeAdditionObj
-
-@synthesize indexPath, nodeURL, nodeName, selectItsParent;
-
-// -------------------------------------------------------------------------------
-//  initWithURL:url:name:select
-// -------------------------------------------------------------------------------
-- (id)initWithURL:(NSString *)url withName:(NSString *)name selectItsParent:(BOOL)select
-{
-	self = [super init];
-	
-	nodeName = name;
-	nodeURL = url;
-	selectItsParent = select;
-	
-	return self;
-}
-@end
-
-
 @interface MBWindowController ()
 
 @end
 
 @implementation MBWindowController
-@synthesize webView;
-@synthesize myOutlineView;
-@synthesize buildingOutlineView;
-@synthesize treeController;
-@synthesize placeHolderView;
-@synthesize contents;
-@synthesize folderImage, urlImage;
-@synthesize separatorCell;
-@synthesize dragNodesArray;
-@synthesize currentView;
-@synthesize retargetWebView;
-@synthesize addButton;
-@synthesize delButton;
-@synthesize alertWindow;
-@synthesize mainWindow;
-@synthesize stream;
-@synthesize lastEventId;
-@synthesize fm;
-@synthesize pathInfos;
-@synthesize root;
 
 - (id)initWithWindow:(NSWindow *)window {
     self = [super initWithWindow:window];
     if (self) {
         // Initialization code here.
-        root = [NSHomeDirectory() stringByAppendingPathComponent:@".MarkBook/"];
+        self.core = [[MBCore alloc] init];
 
         if ( ! [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"]) {
             [[NSUserDefaults standardUserDefaults] setObject:@"TextEdit" forKey:@"editor"];
         }
-        contents = [[NSMutableArray alloc] init];
         
 		// cache the reused icon images
-		folderImage = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)];
-		[folderImage setSize:NSMakeSize(16,16)];
+		self.folderImage = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)];
+		[self.folderImage setSize:NSMakeSize(16,16)];
 		
-		urlImage = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericURLIcon)];
-		[urlImage setSize:NSMakeSize(16,16)];
+		self.urlImage = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericURLIcon)];
+		[self.urlImage setSize:NSMakeSize(16,16)];
         
-        fm = [NSFileManager defaultManager];
-        pathInfos = [[NSMutableDictionary alloc] initWithCapacity:300];
-        
-        NSString *notes_path = [root stringByAppendingPathComponent:@"notes"];
-        if ( ! [fm fileExistsAtPath:notes_path]) {
-            [fm createDirectoryAtPath:notes_path withIntermediateDirectories:YES attributes:NULL error:nil];
-            [fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"] toPath:[notes_path stringByAppendingPathComponent:@"welcome.rst"] error:nil];
-            [fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"markdown.md"] toPath:[notes_path stringByAppendingPathComponent:@"markdown.md"] error:nil];
-        }
+        self.fm = [NSFileManager defaultManager];
     }
     return self;
 }
@@ -150,64 +67,37 @@
 
 - (void) awakeFromNib {
     
-	NSTableColumn *tableColumn = [myOutlineView tableColumnWithIdentifier:COLUMNID_NAME];
+	NSTableColumn *tableColumn = [self.myOutlineView tableColumnWithIdentifier:COLUMNID_NAME];
 	ImageAndTextCell *imageAndTextCell = [[ImageAndTextCell alloc] init];
 	[imageAndTextCell setEditable:YES];
 	[tableColumn setDataCell:imageAndTextCell];
     
-    [addButton setImage:[NSImage imageNamed:NSImageNameAddTemplate]];
-    [delButton setImage:[NSImage imageNamed:NSImageNameRemoveTemplate]];
+    [self.addButton setImage:[NSImage imageNamed:NSImageNameAddTemplate]];
+    [self.delButton setImage:[NSImage imageNamed:NSImageNameRemoveTemplate]];
     
-	separatorCell = [[SeparatorCell alloc] init];
-    [separatorCell setEditable:NO];
+	self.separatorCell = [[SeparatorCell alloc] init];
+    [self.separatorCell setEditable:NO];
     
 	[NSThread detachNewThreadSelector:	@selector(populateOutlineContents:)
 										toTarget:self		// we are the target
 										withObject:nil];
     
-	[myOutlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
-    [myOutlineView setDoubleAction:@selector(openNote:)];
-    [myOutlineView setTarget:self];
-    [self initializeEventStream];
-}
-
-- (void) initializeEventStream {
-    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
-    NSArray *pathsToWatch = [NSArray arrayWithObject:notesPath];
-    FSEventStreamContext context = {0, (__bridge void *)self, NULL, NULL, NULL};
-    NSTimeInterval latency = 0.1;
-    stream = FSEventStreamCreate(NULL, &fsevents_callback, &context, (__bridge CFArrayRef) pathsToWatch, [lastEventId unsignedLongValue], (CFAbsoluteTime) latency, kFSEventStreamCreateFlagUseCFTypes);
-    
-    FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-    FSEventStreamStart(stream);
-}
-
-void fsevents_callback(ConstFSEventStreamRef streamRef,
-                       void *userData,
-                       size_t numEvents,
-                       void *eventPaths,
-                       const FSEventStreamEventFlags eventFlags[],
-                       const FSEventStreamEventId eventIds[]) {
-    
-    MBWindowController *wc = (__bridge MBWindowController *)userData;
-    size_t i;
-    for (i=0; i<numEvents; i++) {
-        [wc addModifiedFilesAtPath:[(__bridge NSArray *)eventPaths objectAtIndex:i]];
-        wc.lastEventId = [NSNumber numberWithLong:eventIds[i]];
-    }
+	[self.myOutlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
+    [self.myOutlineView setDoubleAction:@selector(openNote:)];
+    [self.myOutlineView setTarget:self];
 }
 
 - (IBAction)addFileAction:(id)sender {
     NSString *parentDir;
-    if ([[treeController selectedNodes] count] > 0) {
-        NSTreeNode *selectedNode = [[treeController selectedNodes] objectAtIndex:0];
+    if ([[self.treeController selectedNodes] count] > 0) {
+        NSTreeNode *selectedNode = [[self.treeController selectedNodes] objectAtIndex:0];
         if ([selectedNode isLeaf]) {
             parentDir = [[[selectedNode parentNode] representedObject] urlString];
         } else {
             parentDir = [[selectedNode representedObject] urlString];
         }
     } else {
-        parentDir = [root stringByAppendingPathComponent:@"notes"];
+        parentDir = [self.core.root stringByAppendingPathComponent:@"notes"];
     }
     //NSLog(@"%@", [self indexPathOfString:parentDir]);
     
@@ -217,24 +107,24 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     
     NSString *content = [NSString stringWithFormat:@"=====\nTitle\n=====\n\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
     NSData *fileContents = [content dataUsingEncoding:NSUTF8StringEncoding];
-    [fm createFileAtPath:[parentDir stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
+    [self.fm createFileAtPath:[parentDir stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
     
     //[self addChild:[parentDir stringByAppendingPathComponent:UNTITLED_NAME] withName:UNTITLED_NAME selectParent:YES];
     //[self addFolder:UNTITLED_NAME withURL: atIndexPath:(NSIndexPath*)@""];
 }
 
 - (IBAction)delFileAction:(id)sender {
-    if ([[treeController selectedNodes] count] == 0) {
+    if ([[self.treeController selectedNodes] count] == 0) {
         return;
     }
-    NSString *path = [[[[treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
+    NSString *path = [[[[self.treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
     //NSLog(@"%@", path);
     NSAlert *theAlert = [[NSAlert alloc] init];
     [theAlert addButtonWithTitle:@"好"];
     [theAlert addButtonWithTitle:@"取消"];
     [theAlert setMessageText:[NSString stringWithFormat:@"确认删除文件 %@ ？", [path lastPathComponent]]];
     [theAlert setAlertStyle:NSWarningAlertStyle];
-    [theAlert beginSheetModalForWindow:mainWindow modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void*) path];
+    [theAlert beginSheetModalForWindow:self.mainWindow modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void*) path];
 }
 
 - (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)path {
@@ -251,186 +141,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
     }
 }
 
-- (void) addModifiedFilesAtPath: (NSString *)path {
-    NSArray *nodes = [fm contentsOfDirectoryAtPath:path error:nil];
-    BOOL isDir;
-    
-    //NSLog(@"%@", path);
-    
-    if ( ![fm fileExistsAtPath:path isDirectory:&isDir]) {
-        NSLog(@"ERROR: path NOT exist: %@", path);
-        return;
-    }
-    //NSDictionary *attributes = [fm attributesOfItemAtPath:path error:NULL];
-    //NSDate *modDate = [attributes objectForKey:NSFileModificationDate];
-    
-    if ([pathInfos objectForKey:path]) {
-    } else {
-        [fm createDirectoryAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:path] withIntermediateDirectories:YES attributes:NULL error:nil];
-        [pathInfos setObject:nodes forKey:path];
-        //NSLog(@"add observer: %@", path);
-        return;
-    }
-    
-    NSString *prePath;
-    if ([[treeController selectedNodes] count] > 0) {
-         prePath = [[[[treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
-    }
-    
-    NSIndexPath *indexPath = [self indexPathOfString:path];
-    if (indexPath) {
-        //NSLog(@"index path: %@", indexPath);
-        NSArray *newNodes = [fm contentsOfDirectoryAtPath:path error:nil];
-        NSArray *oldNodes = [pathInfos objectForKey:path];
-        for (NSString *node in newNodes) {
-            //NSLog(@"new node: %@", node);
-            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
-                if ( [oldNodes containsObject:node]) {
-                    NSString *fullPath = [path stringByAppendingPathComponent:node];
-                    NSDictionary *attributes = [fm attributesOfItemAtPath:fullPath error:NULL];
-                    NSDate *modDate = [attributes objectForKey:NSFileModificationDate];
-                    
-                    if ([pathInfos objectForKey:path]) {
-                        if ([modDate compare:[pathInfos objectForKey:fullPath]] == NSOrderedDescending) {
-                            //NSLog(@"file changed: %@", node);
-                            if ([[node pathExtension] isEqualToString:@"rst"]) {
-                                [self rst2html:fullPath];
-                            } else if ([[node pathExtension] isEqualToString:@"md"] || [[node pathExtension] isEqualToString:@"markdown"]) {
-                                [self md2html:fullPath];
-                            }
-                            [webView reload:self];
-                        }
-                    }
-                    [pathInfos setObject:modDate forKey:fullPath];
-                } else {
-                    NSString *fullPath = [path stringByAppendingPathComponent:node];
-                    [self addChild:fullPath withName:[node stringByDeletingPathExtension] selectParent:YES];
-                    //NSLog(@"append child: %@", node);
-                }
-            }
-        }
-        
-        for (NSString *node in oldNodes) {
-            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
-                if ( ![newNodes containsObject:node]) {
-                    //NSLog(@"remove: %@", node);
-                    NSString *fullPath = [path stringByAppendingPathComponent:node];
-                    //should remove in tree
-                    NSIndexPath *nodeIndex = [self indexPathOfString:fullPath];
-                    if (nodeIndex) {
-                        [treeController removeObjectAtArrangedObjectIndexPath:nodeIndex];
-                    }
-                }
-            }
-        }
-        [pathInfos setObject:newNodes forKey:path];
-        if (prePath) {
-            //NSLog(@"reselect previous one");
-            [treeController setSelectionIndexPath:[self indexPathOfString:prePath]];
-        }
-    } else {
-        //NSLog(@"new dir: %@", path);
-    }
-}
-
-- (void) rst2html:(NSString *)path{
-    BOOL isDir;
-    [fm fileExistsAtPath:path isDirectory:&isDir];
-    if (isDir) {
-        return;
-    }
-
-    NSString *dest = [NSString stringWithFormat:@"%@.html", [[root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
-    NSString *parent_path = [dest stringByDeletingLastPathComponent];
-    if ( ! [fm fileExistsAtPath:parent_path isDirectory:nil]) {
-        [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
-    }
-    
-    NSTask *task = [[NSTask alloc] init];
-    NSString *rst2html_command = [EGGS_ROOT stringByAppendingPathComponent:@"bin/rst2html.py"];
-    NSArray *args = [NSArray arrayWithObjects:rst2html_command, path, dest, nil];
-    [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
-    [task setLaunchPath:[EGGS_ROOT stringByAppendingPathComponent:@"bin/mypython"]];
-    [task setArguments:args];
-    [task launch];
-    
-    [task waitUntilExit];
-    int status = [task terminationStatus];
-    if (status == 0) {
-    } else {
-        NSLog(@"Task failed.");
-    }
-}
-
-- (void) md2html:(NSString *)path {
-    BOOL isDir;
-    [fm fileExistsAtPath:path isDirectory:&isDir];
-    if (isDir) {
-        return;
-    }
-
-    NSString *dest = [NSString stringWithFormat:@"%@.html", [[root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
-    NSString *parent_path = [dest stringByDeletingLastPathComponent];
-    if ( ! [fm fileExistsAtPath:parent_path isDirectory:nil]) {
-        [fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
-    }
-    
-    NSTask *task = [[NSTask alloc] init];
-
-
-    NSArray *args = [NSArray arrayWithObjects:path, nil];
-
-    NSPipe *pipe;
-    pipe = [NSPipe pipe];
-    [task setStandardOutput: pipe];
-
-    NSFileHandle *file;
-    file = [pipe fileHandleForReading];
-
-    [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
-    [task setLaunchPath:[EGGS_ROOT stringByAppendingPathComponent:@"bin/markdown"]];
-    [task setArguments:args];
-    [task launch];
-    
-    [task waitUntilExit];
-    int status = [task terminationStatus];
-    if (status == 0) {
-    } else {
-        NSLog(@"Task failed.");
-    }
-
-    NSString *string = [[NSString alloc] initWithData:[file readDataToEndOfFile] encoding:NSUTF8StringEncoding];
-    string = [NSString stringWithFormat:@"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\"> <head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>  </head><body> %@ </body></html>", string];
-    //NSLog(@"%@", dest);
-    [string writeToFile:dest atomically:YES encoding:NSUTF8StringEncoding error:nil];
-}
-
-- (NSIndexPath*)indexPathOfString:(NSString *)path
-{
-    //NSLog(@"search for path: %@", path);
-    return [self indexPathOfString:path inNodes:[[treeController arrangedObjects] childNodes]];
-}
-
-- (NSIndexPath*)indexPathOfString:(NSString *)path inNodes:(NSArray*)nodes
-{
-    for(NSTreeNode* node in nodes)
-    {
-        //NSLog(@"compare with %@", [[node representedObject] urlString]);
-        if([[[node representedObject] urlString] isEqualToString:path]) {
-            return [node indexPath];
-        }
-        if([[node childNodes] count])
-        {
-            NSIndexPath* indexPath = [self indexPathOfString:path inNodes:[node childNodes]];
-            if(indexPath)
-                return indexPath;
-        }
-    }
-    return nil;
-}
-
 - (void) openNote:(id) sender {
-	NSArray	*selection = [treeController selectedNodes];	
+	NSArray	*selection = [self.treeController selectedNodes];
 	if ([selection count] > 0) {
         BaseNode *node = [[selection objectAtIndex:0] representedObject];
         NSString *app = [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"];
@@ -443,9 +155,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 // -------------------------------------------------------------------------------
 - (void)setContents:(NSArray *)newContents
 {
-	if (contents != newContents)
+	if (self.core.contents != newContents)
 	{
-		contents = [[NSMutableArray alloc] initWithArray:newContents];
+		self.core.contents = [[NSMutableArray alloc] initWithArray:newContents];
 	}
 }
 
@@ -454,320 +166,90 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 // -------------------------------------------------------------------------------
 - (NSMutableArray *)contents
 {
-	return contents;
+	return self.core.contents;
 }
 
 
 #pragma mark - Actions
 
-// -------------------------------------------------------------------------------
-//	selectParentFromSelection
-//
-//	Take the currently selected node and select its parent.
-// -------------------------------------------------------------------------------
-- (void)selectParentFromSelection
-{
-	if ([[treeController selectedNodes] count] > 0) {
-		NSTreeNode* firstSelectedNode = [[treeController selectedNodes] objectAtIndex:0];
-		NSTreeNode* parentNode = [firstSelectedNode parentNode];
-		if (parentNode) {
-			// select the parent
-			NSIndexPath* parentIndex = [parentNode indexPath];
-			[treeController setSelectionIndexPath:parentIndex];
-		} else {
-			// no parent exists (we are at the top of tree), so make no selection in our outline
-			NSArray* selectionIndexPaths = [treeController selectionIndexPaths];
-			[treeController removeSelectionIndexPaths:selectionIndexPaths];
-		}
-	}
-}
-
-// -------------------------------------------------------------------------------
-//	addFolder:folderName
-// -------------------------------------------------------------------------------
-- (void)addFolder:(NSString *)folderName withURL:(NSString *)url atIndexPath:(NSIndexPath *)indexPath
-{
-	TreeAdditionObj *treeObjInfo = [[TreeAdditionObj alloc] initWithURL:url withName:folderName selectItsParent:NO];
-	
-	if (buildingOutlineView) {
-		// add the folder to the tree controller, but on the main thread to avoid lock ups
-        [self performSelectorOnMainThread:@selector(performAddFolder:) withObject:[NSArray arrayWithObjects:treeObjInfo, @"", nil] waitUntilDone:YES];
-	} else {
-        [self performAddFolder:[NSArray arrayWithObjects:treeObjInfo, indexPath, nil]];
-	}
-}
-
-// -------------------------------------------------------------------------------
-//	performAddFolder:treeAddition
-// -------------------------------------------------------------------------------
-- (void)performAddFolder:(NSArray *)array {
-    TreeAdditionObj *treeAddition = [array objectAtIndex:0];
-    NSIndexPath *myIndexPath = [array objectAtIndex:1];
-    if ( ! [myIndexPath isEqual:@""]) {
-        ChildNode *node = [[ChildNode alloc] init];
-        node.nodeTitle = [treeAddition nodeName];
-        node.urlString = [treeAddition nodeURL];
-        
-        // the user is adding a child node, tell the controller directly
-        [treeController insertObject:node atArrangedObjectIndexPath:myIndexPath];
-        // in insertObject action, rst2html will be called!
-        return;
-    }
-	// NSTreeController inserts objects using NSIndexPath, so we need to calculate this
-	NSIndexPath *indexPath = nil;
-	
-	// if there is no selection, we will add a new group to the end of the contents array
-	if ([[treeController selectedObjects] count] == 0) {
-		// there's no selection so add the folder to the top-level and at the end
-		indexPath = [NSIndexPath indexPathWithIndex:[contents count]];
-	} else {
-		// get the index of the currently selected node, then add the number its children to the path -
-		// this will give us an index which will allow us to add a node to the end of the currently selected node's children array.
-		//
-		indexPath = [treeController selectionIndexPath];
-		if ([[[treeController selectedObjects] objectAtIndex:0] isLeaf]) {
-			// user is trying to add a folder on a selected child,
-			// so deselect child and select its parent for addition
-			[self selectParentFromSelection];
-		} else {
-			indexPath = [indexPath indexPathByAddingIndex:[[[[treeController selectedObjects] objectAtIndex:0] children] count]];
-		}
-	}
-	
-	ChildNode *node = [[ChildNode alloc] init];
-    node.nodeTitle = [treeAddition nodeName];
-    node.urlString = [treeAddition nodeURL];
-	
-	// the user is adding a child node, tell the controller directly
-	[treeController insertObject:node atArrangedObjectIndexPath:indexPath];
-}
-
-
-
-// -------------------------------------------------------------------------------
-//	performAddChild:treeAddition
-// -------------------------------------------------------------------------------
-- (void)performAddChild:(TreeAdditionObj *)treeAddition
-{
-	if ([[treeController selectedObjects] count] > 0) {
-		// we have a selection
-		if ([[[treeController selectedObjects] objectAtIndex:0] isLeaf]) {
-			// trying to add a child to a selected leaf node, so select its parent for add
-			[self selectParentFromSelection];
-		}
-	}
-	
-	// find the selection to insert our node
-	NSIndexPath *indexPath;
-	if ([[treeController selectedObjects] count] > 0) {
-		// we have a selection, insert at the end of the selection
-		indexPath = [treeController selectionIndexPath];
-		indexPath = [indexPath indexPathByAddingIndex:[[[[treeController selectedObjects] objectAtIndex:0] children] count]];
-	} else {
-		// no selection, just add the child to the end of the tree
-		indexPath = [NSIndexPath indexPathWithIndex:[contents count]];
-	}
-	
-	// create a leaf node
-	ChildNode *node = [[ChildNode alloc] initLeaf];
-	node.urlString = [treeAddition nodeURL];
-    
-	if ([treeAddition nodeURL]) {
-		if ([[treeAddition nodeURL] length] > 0) {
-			// the child to insert has a valid URL, use its display name as the node title
-			if ([treeAddition nodeName])
-                node.nodeTitle = [treeAddition nodeName];
-			else
-                node.nodeTitle = [fm displayNameAtPath:[node urlString]];
-		} else {
-			// the child to insert will be an empty URL
-            node.nodeTitle = @"Untitled";
-            node.urlString = @"http://";
-		}
-	}
-	
-	// the user is adding a child node, tell the controller directly
-	[treeController insertObject:node atArrangedObjectIndexPath:indexPath];
-    //NSLog(@"insert Object At Index Path: %@", indexPath);
-
-	// adding a child automatically becomes selected by NSOutlineView, so keep its parent selected
-	if ([treeAddition selectItsParent])
-		[self selectParentFromSelection];
-}
-
-- (void)addEntries:(NSDictionary *)entries atIndexPath:(NSIndexPath *)indexPath {
-	NSEnumerator *entryEnum = [entries objectEnumerator];
-	
-	id entry;
-	while ((entry = [entryEnum nextObject]))
-	{
-		if ([entry isKindOfClass:[NSDictionary class]])
-		{
-			NSString *urlStr = [entry objectForKey:KEY_URL];
-			
-			if ([entry objectForKey:KEY_SEPARATOR])
-			{
-				// its a separator mark, we treat is as a leaf
-				[self addChild:nil withName:nil selectParent:YES];
-			}
-			else if ([entry objectForKey:KEY_FOLDER])
-			{
-				// its a file system based folder,
-				// we treat is as a leaf and show its contents in the NSCollectionView
-				NSString *folderName = [entry objectForKey:KEY_FOLDER];
-				[self addChild:urlStr withName:folderName selectParent:YES];
-			} else if ([entry objectForKey:KEY_GROUP]) {
-				// it's a generic container
-				NSString *folderName = [entry objectForKey:KEY_GROUP];
-                [self addFolder:folderName withURL:urlStr atIndexPath:indexPath];
-				
-				// add its children
-				NSDictionary *newChildren = [entry objectForKey:KEY_ENTRIES];
-                [self addEntries:newChildren atIndexPath:(NSIndexPath*)@""];
-				
-				[self selectParentFromSelection];
-			} else {
-				// its a leaf item with a URL
-				NSString *nameStr = [entry objectForKey:KEY_NAME];
-				[self addChild:urlStr withName:nameStr selectParent:YES];
-			}
-		}
-	}
-	
-	// inserting children automatically expands its parent, we want to close it
-    if (buildingOutlineView) {
-        if ([[treeController selectedNodes] count] > 0)
-        {
-            NSTreeNode *lastSelectedNode = [[treeController selectedNodes] objectAtIndex:0];
-            if ([[fm displayNameAtPath:[[lastSelectedNode representedObject] urlString]] isEqualToString:@"notes"]) {
-                return;
-            }
-            [myOutlineView collapseItem:lastSelectedNode];
-        }
-    }
-}
-
-- (NSArray *)recurise:(NSString *)path{
-    path = [NSString stringWithFormat:@"%@/", path];
-    NSMutableArray *arr = [[NSMutableArray alloc] initWithCapacity:100];
-    
-    NSArray *nodes = [fm contentsOfDirectoryAtPath:path error:nil];
-    [fm createDirectoryAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:path] withIntermediateDirectories:YES attributes:NULL error:nil];
-    [pathInfos setObject:nodes forKey:path];
-    //NSLog(@"add observer: %@", path);
-    
-    BOOL isDir = NO;
-    for (NSString *file in nodes) {
-        if ([file isEqualToString:@".git"]) {
-            continue;
-        }
-        NSString *fullPath = [path stringByAppendingPathComponent:file];
-        [fm fileExistsAtPath:fullPath isDirectory:(&isDir)];
-        if (isDir) {
-            NSArray *entries = [self recurise:fullPath];
-            fullPath = [NSString stringWithFormat:@"%@/", fullPath];
-            [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:file, @"group", entries, @"entries", fullPath, @"url", nil]];
-        } else {
-            if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[file pathExtension]] ) {
-                NSDictionary *attributes = [fm attributesOfItemAtPath:fullPath error:NULL];
-                NSDate *modDate = [attributes objectForKey:NSFileModificationDate];
-                [pathInfos setObject:modDate forKey:fullPath];
-                [arr addObject:[[NSDictionary alloc] initWithObjectsAndKeys:[file stringByDeletingPathExtension], @"name", fullPath, @"url", nil]];
-            }
-        }
-    }
-    return arr;
-}
-
-- (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select {
-	TreeAdditionObj *treeObjInfo = [[TreeAdditionObj alloc] initWithURL:url
-                                                               withName:nameStr
-                                                        selectItsParent:select];
-	
-	if (buildingOutlineView) {
-		// add the child node to the tree controller, but on the main thread to avoid lock ups
-		[self performSelectorOnMainThread:@selector(performAddChild:) withObject:treeObjInfo waitUntilDone:YES];
-	} else {
-		[self performAddChild:treeObjInfo];
-	}
-}
-
 - (void)changeItemView {
-	NSArray	*selection = [treeController selectedNodes];	
+	NSArray	*selection = [self.treeController selectedNodes];
 	if ([selection count] > 0) {
         BaseNode *node = [[selection objectAtIndex:0] representedObject];
         NSString *urlStr = [node urlString];
+        [self.noteArray addObject:@"hello"];
+        //[self.myCollectionView reloadDataWithItems:dataSource emptyCaches:YES];
+        //[self.myCollectionView reloa]
+
         if (urlStr) {
             //NSURL *targetURL = [NSURL fileURLWithPath:urlStr];
             
             if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[urlStr pathExtension]]) {
-                if (currentView != webView) {
+                if (self.currentView != self.webView) {
                     // change to web view
                     [self removeSubview];
-                    currentView = nil;
-                    [placeHolderView addSubview:webView];
-                    currentView = webView;
+                    self.currentView = nil;
+                    [self.placeHolderView addSubview:self.webView];
+                    self.currentView = self.webView;
                 }
                 
                 // this will tell our WebUIDelegate not to retarget first responder since some web pages force
                 // forus to their text fields - we want to keep our outline view in focus.
-                retargetWebView = YES;	
+                self.retargetWebView = YES;
 
-                NSString *dest_path = [NSString stringWithFormat:@"%@.html", [[root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
+                NSString *dest_path = [NSString stringWithFormat:@"%@.html", [[self.core.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
                 //NSLog(@"%@", dest_path);
                 
-                if ( ! [fm fileExistsAtPath:dest_path isDirectory:nil]) {
+                if ( ! [self.fm fileExistsAtPath:dest_path isDirectory:nil]) {
                     //NSLog(@"url file is not existed. generating");
                     //[self performSelectorOnMainThread:@selector(rst2html:) withObject:urlStr waitUntilDone:YES];
                     if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
-                        [self rst2html:urlStr];
+                        [self.core rst2html:urlStr];
                     } else if ([[urlStr pathExtension] isEqualToString:@"md"] || [[urlStr pathExtension] isEqualToString:@"markdown"]) {
-                        [self md2html:urlStr];
+                        [self.core md2html:urlStr];
                     }
                 }
                 if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
-                    [webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                    [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
                 } else {
-                    [webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                    [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
                 }
-                [webView layout];
+                [self.webView layout];
             }
             
             NSRect newBounds;
             newBounds.origin.x = 0;
             newBounds.origin.y = 0;
-            newBounds.size.width = [[currentView superview] frame].size.width;
-            newBounds.size.height = [[currentView superview] frame].size.height;
-            [currentView setFrame:[[currentView superview] frame]];
+            newBounds.size.width = [[self.currentView superview] frame].size.width;
+            newBounds.size.height = [[self.currentView superview] frame].size.height;
+            [self.currentView setFrame:[[self.currentView superview] frame]];
             
             // make sure our added subview is placed and resizes correctly
-            [currentView setFrameOrigin:NSMakePoint(0,0)];
-            [currentView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+            [self.currentView setFrameOrigin:NSMakePoint(0,0)];
+            [self.currentView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
         } else {
             // there's no url associated with this node
             // so a container was selected - no view to display
             [self removeSubview];
-            currentView = nil;
+            self.currentView = nil;
         }
     }
 }
 
 - (void)populateOutlineContents:(id)inObject
 {
-	buildingOutlineView = YES;		// indicate to ourselves we are building the default tree at startup
-	[myOutlineView setHidden:YES];	// hide the outline view - don't show it as we are building the contents
+	[self.myOutlineView setHidden:YES];	// hide the outline view - don't show it as we are building the contents
 	
-    NSString *notesPath = [root stringByAppendingPathComponent:@"notes"];
-    NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[fm displayNameAtPath:notesPath], @"group", [self recurise:notesPath], @"entries", [NSString stringWithFormat:@"%@/", notesPath], KEY_URL, nil];
-    NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
-    [self addEntries:(NSDictionary *)entries atIndexPath:(NSIndexPath*)@""];
-	
-	buildingOutlineView = NO;		// we're done building our default tree
+    [self.treeController setContent:self.core.treeController.content];
+    
 	// remove the current selection
-	NSArray *selection = [treeController selectionIndexPaths];
-	[treeController removeSelectionIndexPaths:selection];
-	
-	[myOutlineView setHidden:NO];	// we are done populating the outline view content, show it again
+	NSArray *selection = [self.treeController selectionIndexPaths];
+	[self.treeController removeSelectionIndexPaths:selection];
+    //NSLog(@"%@", [self.treeController.arrangedObjects childNodes]);
+    NSLog(@"%@", self.treeController.childrenKeyPath);
+    NSLog(@"%@", self.treeController.leafKeyPath);
+    
+	[self.myOutlineView setHidden:NO];	// we are done populating the outline view content, show it again
 	
 }
 
@@ -816,7 +298,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 		// we are being asked for the cell for the single and only column
 		BaseNode *node = [item representedObject];
 		if ([self isSeparator:node])
-            returnCell = separatorCell;
+            returnCell = self.separatorCell;
 	}
 	
 	return returnCell;
@@ -829,13 +311,13 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 - (void)removeSubview
 {
 	// empty selection
-	NSArray *subViews = [placeHolderView subviews];
+	NSArray *subViews = [self.placeHolderView subviews];
 	if ([subViews count] > 0)
 	{
 		[[subViews objectAtIndex:0] removeFromSuperview];
 	}
 	
-	[placeHolderView displayIfNeeded];	// we want the removed views to disappear right away
+	[self.placeHolderView displayIfNeeded];	// we want the removed views to disappear right away
 }
 
 
@@ -848,17 +330,17 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 		// don't allow empty node names
 		return NO;
 	} else {
-        NSString *oldPath = [[[[treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
+        NSString *oldPath = [[[[self.treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
         NSString *newPath = [[oldPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:[fieldEditor string]];
         newPath = [newPath stringByAppendingPathExtension:@"rst"];
-        [fm moveItemAtPath:oldPath toPath:newPath error:nil];
-        [fm moveItemAtPath:[self getHtmlPath:oldPath] toPath:[self getHtmlPath:newPath] error:nil];
+        [self.fm moveItemAtPath:oldPath toPath:newPath error:nil];
+        [self.fm moveItemAtPath:[self getHtmlPath:oldPath] toPath:[self getHtmlPath:newPath] error:nil];
 		return YES;
 	}
 }
 
 - (NSString *)getHtmlPath:(NSString *)path {
-    return [[[root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path] stringByAppendingPathExtension:@"html"];
+    return [[[self.core.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path] stringByAppendingPathExtension:@"html"];
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView shouldEditTableColumn:(NSTableColumn *)tableColumn item:(id)item
@@ -889,7 +371,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 						{
 							NSImage *iconImage;
 							if ([[item urlString] hasPrefix:HTTP_PREFIX])
-								iconImage = urlImage;
+								iconImage = self.urlImage;
 							else
 								iconImage = [[NSWorkspace sharedWorkspace] iconForFile:urlStr];
 							[item setNodeIcon:iconImage];
@@ -915,7 +397,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 					else
 					{
 						// it's a folder, use the folderImage as its icon
-						[item setNodeIcon:folderImage];
+						[item setNodeIcon:self.folderImage];
 					}
 				}
 			}
@@ -931,16 +413,16 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 // -------------------------------------------------------------------------------
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification
 {
-	if (buildingOutlineView)	// we are currently building the outline view, don't change any view selections
+	if (self.core.buildingOutlineView)	// we are currently building the outline view, don't change any view selections
 		return;
 
 	// ask the tree controller for the current selection
-	NSArray *selection = [treeController selectedObjects];
+	NSArray *selection = [self.treeController selectedObjects];
 	if ([selection count] > 1)
 	{
 		// multiple selection - clear the right side view
 		[self removeSubview];
-		currentView = nil;
+		self.currentView = nil;
 	}
 	else
 	{
@@ -953,7 +435,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 		{
 			// there is no current selection - no view to display
 			[self removeSubview];
-			currentView = nil;
+			self.currentView = nil;
 		}
 	}
 }
@@ -1053,7 +535,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
         node.nodeTitle = [nameArray objectAtIndex:i];
         
         node.urlString = [urlArray objectAtIndex:i];
-		[treeController insertObject:node atArrangedObjectIndexPath:indexPath];
+		[self.treeController insertObject:node atArrangedObjectIndexPath:indexPath];
 	}
 }
 
@@ -1072,7 +554,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	NSInteger idx;
 	for (idx = ([newNodes count] - 1); idx >= 0; idx--)
 	{
-		[treeController moveNode:[newNodes objectAtIndex:idx] toIndexPath:indexPath];
+		[self.treeController moveNode:[newNodes objectAtIndex:idx] toIndexPath:indexPath];
 	}
 	
 	// keep the moved nodes selected
@@ -1081,7 +563,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	{
 		[indexPathList addObject:[[newNodes objectAtIndex:i] indexPath]];
 	}
-	[treeController setSelectionIndexPaths: indexPathList];
+	[self.treeController setSelectionIndexPaths: indexPathList];
 }
 
 // -------------------------------------------------------------------------------
@@ -1102,12 +584,12 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 			ChildNode *node = [[ChildNode alloc] init];
 
 			NSURL *url = [NSURL fileURLWithPath:[fileNames objectAtIndex:i]];
-            NSString *name = [fm displayNameAtPath:[url path]];
+            NSString *name = [self.fm displayNameAtPath:[url path]];
             node.isLeaf = YES;
 
             node.nodeTitle = name;
             node.urlString = [url path];
-			[treeController insertObject:node atArrangedObjectIndexPath:indexPath];
+			[self.treeController insertObject:node atArrangedObjectIndexPath:indexPath];
 		}
 	}
 }
@@ -1127,7 +609,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 		if ([url isFileURL])
 		{
 			// url is file-based, use it's display name
-			NSString *name = [fm displayNameAtPath:[url path]];
+			NSString *name = [self.fm displayNameAtPath:[url path]];
             node.nodeTitle = name;
             node.urlString = [url path];
 		}
@@ -1161,7 +643,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 		}
         node.isLeaf = YES;
 		
-		[treeController insertObject:node atArrangedObjectIndexPath:indexPath];
+		[self.treeController insertObject:node atArrangedObjectIndexPath:indexPath];
 	}
 }
 
@@ -1191,7 +673,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef,
 	{
 		// drop at the top root level
 		if (index == -1)	// drop area might be ambibuous (not at a particular location)
-			indexPath = [NSIndexPath indexPathWithIndex:[contents count]]; // drop at the end of the top level
+			indexPath = [NSIndexPath indexPathWithIndex:[self.core.contents count]]; // drop at the end of the top level
 		else
 			indexPath = [NSIndexPath indexPathWithIndex:index]; // drop at a particular place at the top level
 	}
