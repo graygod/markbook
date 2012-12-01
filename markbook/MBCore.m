@@ -531,7 +531,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     NSArray *nodes = [self.fm contentsOfDirectoryAtPath:path error:nil];
     NSMutableArray *arrays = [[NSMutableArray alloc] initWithCapacity:100];
     for(NSString *node in nodes) {
-        NoteSnap* note = [[NoteSnap alloc] initWithUrl:node];
+        NoteSnap* note = [[NoteSnap alloc] initWithDir:path fileName:node];
         [arrays addObject:note];
     }
     return arrays;
@@ -541,8 +541,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 
 @implementation NoteSnap
 
-- (id) initWithUrl:(NSString *)url {
-    self.title = [url stringByDeletingPathExtension];
+- (id) initWithDir:(NSString *)path fileName:(NSString *)name {
+    self.urlStr = [path stringByAppendingPathComponent:name];
+    self.title = [name stringByDeletingPathExtension];
     self.abstract = @"Abstract...";
 	return self;
 }

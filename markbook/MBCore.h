@@ -34,7 +34,8 @@
 @interface NoteSnap: NSObject
 
 @property (strong) NSString *title;
+@property (strong) NSString *urlStr;
 @property (strong) NSString *abstract;
 
-- (id) initWithUrl:(NSString *)path;
+- (id) initWithDir:(NSString *)path fileName:(NSString *)name;
 @end

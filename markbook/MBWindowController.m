@@ -85,6 +85,53 @@
 	[self.myOutlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
     [self.myOutlineView setDoubleAction:@selector(openNote:)];
     [self.myOutlineView setTarget:self];
+    
+    [self.noteArray addObserver:self forKeyPath:@"selectionIndexes" options:NSKeyValueObservingOptionNew context:nil];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"selectionIndexes"]) {
+        if ([[self.noteArray selectedObjects] count] > 0) {
+            if ([[self.noteArray selectedObjects] count] == 1) {
+                NoteSnap *note = (NoteSnap *)[[self.noteArray selectedObjects] objectAtIndex:0];
+                NSLog(@"change selection: %@", note.title);
+                NSString *urlStr = note.urlStr;
+
+                if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[urlStr pathExtension]]) {
+                    if (self.currentView != self.webView) {
+                        // change to web view
+                        [self removeSubview];
+                        self.currentView = nil;
+                        [self.placeHolderView addSubview:self.webView];
+                        self.currentView = self.webView;
+                    }
+                    
+                    // this will tell our WebUIDelegate not to retarget first responder since some web pages force
+                    // forus to their text fields - we want to keep our outline view in focus.
+                    self.retargetWebView = YES;
+
+                    NSString *dest_path = [NSString stringWithFormat:@"%@.html", [[self.core.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
+                    //NSLog(@"%@", dest_path);
+                    
+                    if ( ! [self.fm fileExistsAtPath:dest_path isDirectory:nil]) {
+                        //NSLog(@"url file is not existed. generating");
+                        //[self performSelectorOnMainThread:@selector(rst2html:) withObject:urlStr waitUntilDone:YES];
+                        if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
+                            [self.core rst2html:urlStr];
+                        } else if ([[urlStr pathExtension] isEqualToString:@"md"] || [[urlStr pathExtension] isEqualToString:@"markdown"]) {
+                            [self.core md2html:urlStr];
+                        }
+                    }
+                    if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
+                        [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                    } else {
+                        [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                    }
+                    [self.webView layout];
+                }
+            }
+        }
+    }
 }
 
 - (IBAction)addFileAction:(id)sender {
@@ -203,44 +250,6 @@
             self.currentView = nil;
         }
     }
-}
-
-- (void)showNote {
-    NSLog(@"%@", self.noteArray.selectionIndexes);
-    /*
-    if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[urlStr pathExtension]]) {
-        if (self.currentView != self.webView) {
-            // change to web view
-            [self removeSubview];
-            self.currentView = nil;
-            [self.placeHolderView addSubview:self.webView];
-            self.currentView = self.webView;
-        }
-        
-        // this will tell our WebUIDelegate not to retarget first responder since some web pages force
-        // forus to their text fields - we want to keep our outline view in focus.
-        self.retargetWebView = YES;
-
-        NSString *dest_path = [NSString stringWithFormat:@"%@.html", [[self.core.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
-        //NSLog(@"%@", dest_path);
-        
-        if ( ! [self.fm fileExistsAtPath:dest_path isDirectory:nil]) {
-            //NSLog(@"url file is not existed. generating");
-            //[self performSelectorOnMainThread:@selector(rst2html:) withObject:urlStr waitUntilDone:YES];
-            if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
-                [self.core rst2html:urlStr];
-            } else if ([[urlStr pathExtension] isEqualToString:@"md"] || [[urlStr pathExtension] isEqualToString:@"markdown"]) {
-                [self.core md2html:urlStr];
-            }
-        }
-        if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
-            [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-        } else {
-            [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-        }
-        [self.webView layout];
-    }
-    */
 }
 
 - (void)populateOutlineContents:(id)inObject
