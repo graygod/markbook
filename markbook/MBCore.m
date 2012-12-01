@@ -161,7 +161,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
                     } else if ([[node pathExtension] isEqualToString:@"md"] || [[node pathExtension] isEqualToString:@"markdown"]) {
                         [self md2html:fullPath];
                     }
-                    //[webView reload:self];
+                    [[NSNotificationCenter defaultCenter]
+                     postNotificationName:@"fileContentChangedNotification" object:self
+                     userInfo:[NSDictionary dictionaryWithObject:fullPath forKey:@"urlStr"]];
                 }
             }
             [self.pathInfos setObject:modDate forKey:fullPath];

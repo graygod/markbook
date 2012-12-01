@@ -82,6 +82,14 @@
     //[self.myOutlineView setTarget:self];
     
     [self.noteArray addObserver:self forKeyPath:@"selectionIndexes" options:NSKeyValueObservingOptionNew context:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadWebView:) name:@"fileContentChangedNotification" object:nil];
+}
+
+- (void)reloadWebView:(NSNotification *)aNotification {
+	NSString *urlStr = [[aNotification userInfo] objectForKey:@"urlStr"];
+    NSLog(@"%@", urlStr);
+    [self.webView reload:self];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
