@@ -458,7 +458,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     
     NSTask *task = [[NSTask alloc] init];
     NSString *rst2html_command = [EGGS_ROOT stringByAppendingPathComponent:@"bin/rst2html.py"];
-    NSArray *args = [NSArray arrayWithObjects:rst2html_command, path, dest, nil];
+    NSArray *args = [NSArray arrayWithObjects:rst2html_command, @"--stylesheet-path=/Applications/MarkBook.app/Contents/Resources/myeggs/default.css", path, dest, nil];
     [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
     [task setLaunchPath:[EGGS_ROOT stringByAppendingPathComponent:@"bin/mypython"]];
     [task setArguments:args];

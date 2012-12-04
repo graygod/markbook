@@ -22,7 +22,7 @@ task :dmg do |t|
 	sh "hdiutil create ~/Downloads/%s -srcfolder /tmp/MarkBook" % filename
 end
 
-task :install do |t|
+task :install => :xcode do |t|
 	sh "sudo rm -rf /Applications/MarkBook.app"
 	sh "sudo cp -rf /tmp/MarkBook/MarkBook.app /Applications"
 end

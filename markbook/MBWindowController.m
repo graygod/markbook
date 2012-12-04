@@ -65,6 +65,7 @@
 	ImageAndTextCell *imageAndTextCell = [[ImageAndTextCell alloc] init];
 	[imageAndTextCell setEditable:YES];
 	[tableColumn setDataCell:imageAndTextCell];
+    [self.myCollectionView setBackgroundColors:[NSArray arrayWithObjects:[NSColor colorWithPatternImage:[NSImage imageNamed:@"Reeder-Noise.png"]], nil]];
     
     [self.addButton setImage:[NSImage imageNamed:NSImageNameAddTemplate]];
     [self.delButton setImage:[NSImage imageNamed:NSImageNameRemoveTemplate]];
