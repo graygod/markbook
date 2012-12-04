@@ -49,9 +49,6 @@
 		self.folderImage = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)];
 		[self.folderImage setSize:NSMakeSize(16,16)];
 		
-		self.urlImage = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericURLIcon)];
-		[self.urlImage setSize:NSMakeSize(16,16)];
-        
     }
     return self;
 }
@@ -64,7 +61,6 @@
 
 
 - (void) awakeFromNib {
-    
 	NSTableColumn *tableColumn = [self.myOutlineView tableColumnWithIdentifier:COLUMNID_NAME];
 	ImageAndTextCell *imageAndTextCell = [[ImageAndTextCell alloc] init];
 	[imageAndTextCell setEditable:YES];
@@ -101,17 +97,9 @@
                 NSString *urlStr = note.urlStr;
 
                 if ([[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[urlStr pathExtension]]) {
-                    if (self.currentView != self.webView) {
-                        // change to web view
-                        [self removeSubview];
-                        self.currentView = nil;
-                        [self.placeHolderView addSubview:self.webView];
-                        self.currentView = self.webView;
-                    }
                     
                     // this will tell our WebUIDelegate not to retarget first responder since some web pages force
                     // forus to their text fields - we want to keep our outline view in focus.
-                    self.retargetWebView = YES;
 
                     NSString *dest_path = [NSString stringWithFormat:@"%@.html", [[self.core.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
                     //NSLog(@"%@", dest_path);
@@ -235,22 +223,6 @@
             for (NoteSnap *note in notes) {
                 [self.noteArray addObject:note];
             }
-            
-            NSRect newBounds;
-            newBounds.origin.x = 0;
-            newBounds.origin.y = 0;
-            newBounds.size.width = [[self.currentView superview] frame].size.width;
-            newBounds.size.height = [[self.currentView superview] frame].size.height;
-            [self.currentView setFrame:[[self.currentView superview] frame]];
-            
-            // make sure our added subview is placed and resizes correctly
-            [self.currentView setFrameOrigin:NSMakePoint(0,0)];
-            [self.currentView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-        } else {
-            // there's no url associated with this node
-            // so a container was selected - no view to display
-            [self removeSubview];
-            self.currentView = nil;
         }
     }
 }
@@ -310,22 +282,6 @@
 }
 
 // -------------------------------------------------------------------------------
-//	removeSubview
-// -------------------------------------------------------------------------------
-- (void)removeSubview
-{
-	// empty selection
-	NSArray *subViews = [self.placeHolderView subviews];
-	if ([subViews count] > 0)
-	{
-		[[subViews objectAtIndex:0] removeFromSuperview];
-	}
-	
-	[self.placeHolderView displayIfNeeded];	// we want the removed views to disappear right away
-}
-
-
-// -------------------------------------------------------------------------------
 //	textShouldEndEditing:fieldEditor
 // -------------------------------------------------------------------------------
 - (BOOL)control:(NSControl *)control textShouldEndEditing:(NSText *)fieldEditor
@@ -366,15 +322,6 @@
 					NSString *urlStr = [item urlString];
 					if (urlStr) {
 						if ([item isLeaf]) {
-                            /*
-							NSImage *iconImage;
-							if ([[item urlString] hasPrefix:HTTP_PREFIX]) {
-								iconImage = self.urlImage;
-                            } else {
-								iconImage = [[NSWorkspace sharedWorkspace] iconForFile:urlStr];
-                            }
-							[item setNodeIcon:iconImage];
-                            */
                             [item setNodeIcon:self.folderImage];
 						} else {
 							NSImage* iconImage = [[NSWorkspace sharedWorkspace] iconForFile:urlStr];
@@ -410,24 +357,14 @@
 
 	// ask the tree controller for the current selection
 	NSArray *selection = [self.treeController selectedObjects];
-	if ([selection count] > 1)
-	{
+	if ([selection count] > 1) {
 		// multiple selection - clear the right side view
-		[self removeSubview];
-		self.currentView = nil;
-	}
-	else
-	{
-		if ([selection count] == 1)
-		{
+	} else {
+		if ([selection count] == 1) {
 			// single selection
 			[self changeItemView];
-		}
-		else
-		{
+		} else {
 			// there is no current selection - no view to display
-			[self removeSubview];
-			self.currentView = nil;
 		}
 	}
 }
@@ -544,15 +481,13 @@
 
 	// move the items to their new place (we do this backwards, otherwise they will end up in reverse order)
 	NSInteger idx;
-	for (idx = ([newNodes count] - 1); idx >= 0; idx--)
-	{
+	for (idx = ([newNodes count] - 1); idx >= 0; idx--) {
 		[self.treeController moveNode:[newNodes objectAtIndex:idx] toIndexPath:indexPath];
 	}
 	
 	// keep the moved nodes selected
 	NSMutableArray *indexPathList = [NSMutableArray array];
-    for (NSUInteger i = 0; i < [newNodes count]; i++)
-	{
+    for (NSUInteger i = 0; i < [newNodes count]; i++) {
 		[indexPathList addObject:[[newNodes objectAtIndex:i] indexPath]];
 	}
 	[self.treeController setSelectionIndexPaths: indexPathList];
