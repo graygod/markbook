@@ -16,6 +16,10 @@
 @end
 
 @interface MBWindowController : NSWindowController
+@property (weak) IBOutlet NSView *middleView;
+@property (strong) IBOutlet NSScrollView *tableScrollView;
+@property (weak) IBOutlet NSTableView *tableView;
+@property (weak) IBOutlet NSScrollView *collectionScrollView;
 
 @property (weak) IBOutlet WebView *webView;
 @property (weak) IBOutlet NSOutlineView *myOutlineView;

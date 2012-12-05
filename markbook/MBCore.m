@@ -532,7 +532,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 - (id) initWithDir:(NSString *)path fileName:(NSString *)name {
     self.urlStr = [path stringByAppendingPathComponent:name];
     self.title = [name stringByDeletingPathExtension];
-    self.abstract = @"Abstract...";
+    self.abstract = @"";
 	return self;
 }
 
