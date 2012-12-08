@@ -519,6 +519,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     NSArray *nodes = [self.fm contentsOfDirectoryAtPath:path error:nil];
     NSMutableArray *arrays = [[NSMutableArray alloc] initWithCapacity:100];
     for(NSString *node in nodes) {
+        if (! [[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
+            continue;
+        }
         NoteSnap* note = [[NoteSnap alloc] initWithDir:path fileName:node];
         [arrays addObject:note];
     }

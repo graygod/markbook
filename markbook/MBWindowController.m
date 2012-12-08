@@ -77,8 +77,6 @@
 										withObject:nil];
     
 	[self.myOutlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
-    //[self.myOutlineView setDoubleAction:@selector(openNote:)];
-    //[self.myOutlineView setTarget:self];
     
     [self.noteArray addObserver:self forKeyPath:@"selectionIndexes" options:NSKeyValueObservingOptionNew context:nil];
     
@@ -183,12 +181,9 @@
 }
 
 - (void) openNote:(id) sender {
-	NSArray	*selection = [self.treeController selectedNodes];
-	if ([selection count] > 0) {
-        BaseNode *node = [[selection objectAtIndex:0] representedObject];
-        NSString *app = [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"];
-        [[NSWorkspace sharedWorkspace] openFile:[node urlString] withApplication:app];
-    }
+    NoteSnap *note = [(NSArray *)sender objectAtIndex:0];
+    NSString *app = [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"];
+    [[NSWorkspace sharedWorkspace] openFile:[note urlStr] withApplication:app];
 }
 
 // -------------------------------------------------------------------------------
