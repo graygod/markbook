@@ -66,7 +66,8 @@
 	[imageAndTextCell setEditable:YES];
 	[tableColumn setDataCell:imageAndTextCell];
     [self.myCollectionView setBackgroundColors:[NSArray arrayWithObjects:[NSColor colorWithPatternImage:[NSImage imageNamed:@"Reeder-Noise.png"]], nil]];
-    //[self.middleView replaceSubview:[self.middleView.subviews objectAtIndex:0] with:self.tableScrollView];
+
+    //[self.tableView setBackgroundColor:[NSColor colorWithPatternImage:[NSImage imageNamed:@"bg-body.png"]]];
     
     [self.addButton setImage:[NSImage imageNamed:NSImageNameAddTemplate]];
     [self.delButton setImage:[NSImage imageNamed:NSImageNameRemoveTemplate]];
