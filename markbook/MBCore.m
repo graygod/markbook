@@ -18,7 +18,6 @@
 #define KEY_FOLDER				@"folder"
 #define KEY_ENTRIES				@"entries"
 
-
 // -------------------------------------------------------------------------------
 //	TreeAdditionObj
 //
@@ -515,7 +514,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     [string writeToFile:dest atomically:YES encoding:NSUTF8StringEncoding error:nil];
 }
 
-- (NSArray *) listDirectory:(NSString *)path {
+- (NSArray *) listDirectory:(NSString *)path withView:(WebView *)view {
     NSArray *nodes = [self.fm contentsOfDirectoryAtPath:path error:nil];
     NSMutableArray *arrays = [[NSMutableArray alloc] initWithCapacity:100];
     for(NSString *node in nodes) {
@@ -533,10 +532,61 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 @implementation NoteSnap
 
 - (id) initWithDir:(NSString *)path fileName:(NSString *)name {
+    self.root = [NSHomeDirectory() stringByAppendingPathComponent:@".MarkBook"];
     self.urlStr = [path stringByAppendingPathComponent:name];
-    self.title = [name stringByDeletingPathExtension];
-    self.abstract = @"";
+    NSString *fileContents = [NSString stringWithContentsOfFile:self.urlStr encoding:NSUTF8StringEncoding error:nil];
+    NSArray *allLinedStrings = [fileContents componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    if ([allLinedStrings count] > 1) {
+        self.title = [allLinedStrings objectAtIndex:1];
+    } else {
+        self.title = [allLinedStrings objectAtIndex:0];
+    }
+    self.abstract = [self snapshot:self.urlStr withSize:CGSizeMake(100,200)];
 	return self;
 }
+
+- (NSImage *)snapshot:(NSString *)urlStr withSize:(CGSize)maxSize {
+    NSRect viewRect = NSMakeRect(0.0, 0.0, 600.0, 800.0);
+    
+    WebView* webView = [[WebView alloc] initWithFrame:viewRect];
+	[[[webView mainFrame] frameView] setAllowsScrolling:NO];
+
+    NSString *dest_path = [NSString stringWithFormat:@"file://%@.html", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
+    NSLog(@"%@", dest_path);
+    
+    [webView setMainFrameURL:[dest_path stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    
+    while([webView isLoading]) {
+		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+	}
+    
+	[webView display];
+    
+    WebFrameView *view = webView.mainFrame.frameView;
+    NSRect imageRect = view.documentView.frame;
+    
+    NSLog(@"%f", imageRect.origin.x);
+    NSLog(@"%f", imageRect.origin.y);
+    NSLog(@"%f", imageRect.size.width);
+    NSLog(@"%f", imageRect.size.height);
+    imageRect.size.width = 600;
+    imageRect.size.height = 800;
+    
+    NSBitmapImageRep *imageRep = [view.documentView bitmapImageRepForCachingDisplayInRect:imageRect];
+    //[imageRep setSize:imageRect.size];
+    [view.documentView cacheDisplayInRect:imageRect toBitmapImageRep:imageRep];
+    
+    NSImage *image = [[NSImage alloc] initWithSize:imageRect.size];
+    NSLog(@"%f", imageRect.size.width);
+    NSLog(@"%f", imageRect.size.height);
+    
+    [image addRepresentation:imageRep];
+    //image = [NSImage imageNamed:@"Reeder-Noise.png"];
+    
+    NSLog(@"%@", image);
+    
+    return image;
+}
+
 
 @end

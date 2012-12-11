@@ -207,7 +207,7 @@
 	NSString *resolvedPath = nil;
 
 	CFURLRef url = CFURLCreateWithFileSystemPath
-		(kCFAllocatorDefault, (CFStringRef)self, kCFURLPOSIXPathStyle, NO);
+		(kCFAllocatorDefault, (__bridge CFStringRef)self, kCFURLPOSIXPathStyle, NO);
 	if (url != NULL)
 	{
 		FSRef fsRef;

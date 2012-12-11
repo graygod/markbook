@@ -77,6 +77,7 @@
             return nil;
         }
     } else {
+        /*
         if (![properties[NSURLIsDirectoryKey] boolValue]) {
             // Customize and localize this error.
             NSString *failureDescription = [NSString stringWithFormat:@"Expected a folder to store application data, found a file (%@).", [applicationFilesDirectory path]];
@@ -88,6 +89,7 @@
             [[NSApplication sharedApplication] presentError:error];
             return nil;
         }
+         */
     }
     
     NSURL *url = [applicationFilesDirectory URLByAppendingPathComponent:@"markbook.storedata"];

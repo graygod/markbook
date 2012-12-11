@@ -200,29 +200,8 @@
 // -------------------------------------------------------------------------------
 //	contents:
 // -------------------------------------------------------------------------------
-- (NSMutableArray *)contents
-{
+- (NSMutableArray *)contents {
 	return self.core.contents;
-}
-
-
-#pragma mark - Actions
-
-- (void)changeItemView {
-	NSArray	*selection = [self.treeController selectedNodes];
-	if ([selection count] > 0) {
-        BaseNode *node = [[selection objectAtIndex:0] representedObject];
-        NSString *urlStr = [node urlString];
-
-        if (urlStr) {
-            //NSURL *targetURL = [NSURL fileURLWithPath:urlStr];
-            NSArray *notes = [self.core listDirectory:urlStr];
-            [self.noteArray setContent:nil];
-            for (NoteSnap *note in notes) {
-                [self.noteArray addObject:note];
-            }
-        }
-    }
 }
 
 - (void)populateOutlineContents:(id)inObject {
@@ -345,52 +324,32 @@
 	}
 }
 
-// -------------------------------------------------------------------------------
-//	outlineViewSelectionDidChange:notification
-// -------------------------------------------------------------------------------
-- (void)outlineViewSelectionDidChange:(NSNotification *)notification
-{
-	if (self.core.buildingOutlineView)	// we are currently building the outline view, don't change any view selections
-		return;
+#pragma mark - changeItemView
 
-	// ask the tree controller for the current selection
+- (void)outlineViewSelectionDidChange:(NSNotification *)notification {
+	if (self.core.buildingOutlineView)
+		return;
+    
 	NSArray *selection = [self.treeController selectedObjects];
-	if ([selection count] > 1) {
-		// multiple selection - clear the right side view
-	} else {
-		if ([selection count] == 1) {
-			// single selection
-			[self changeItemView];
-		} else {
-			// there is no current selection - no view to display
-		}
-	}
+	if ([selection count] == 1) {
+        NSString *urlStr = [[selection objectAtIndex:0] urlString];
+        if (urlStr) {
+            self.notes = [self.core listDirectory:urlStr withView:self.webView];
+        }
+    }
 }
 
-// ----------------------------------------------------------------------------------------
-// outlineView:isGroupItem:item
-// ----------------------------------------------------------------------------------------
-- (BOOL)outlineView:(NSOutlineView *)outlineView isGroupItem:(id)item
-{
+- (BOOL)outlineView:(NSOutlineView *)outlineView isGroupItem:(id)item {
 	return ([self isSpecialGroup:[item representedObject]] ? YES : NO);
 }
 
-
 #pragma mark - NSOutlineView drag and drop
 
-// ----------------------------------------------------------------------------------------
-// draggingSourceOperationMaskForLocal <NSDraggingSource override>
-// ----------------------------------------------------------------------------------------
-- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal
-{
+- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal {
 	return NSDragOperationMove;
 }
 
-// ----------------------------------------------------------------------------------------
-// outlineView:writeItems:toPasteboard
-// ----------------------------------------------------------------------------------------
-- (BOOL)outlineView:(NSOutlineView *)ov writeItems:(NSArray *)items toPasteboard:(NSPasteboard *)pboard
-{
+- (BOOL)outlineView:(NSOutlineView *)ov writeItems:(NSArray *)items toPasteboard:(NSPasteboard *)pboard {
 	[pboard declareTypes:[NSArray arrayWithObjects:kNodesPBoardType, nil] owner:self];
 	
 	// keep track of this nodes for drag feedback in "validateDrop"

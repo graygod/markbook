@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <WebKit/WebKit.h>
 
 @interface MBCore : NSObject
 
@@ -28,14 +29,16 @@
 - (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select;
 
 - (NSArray *)recurise:(NSString *)dir;
-- (NSArray *) listDirectory:(NSString *)path;
+- (NSArray *) listDirectory:(NSString *)path withView:(WebView *)view;
 @end
 
 @interface NoteSnap: NSObject
 
+@property (strong, nonatomic) NSString* root;
 @property (strong) NSString *title;
 @property (strong) NSString *urlStr;
-@property (strong) NSString *abstract;
+@property (strong) NSImage *abstract;
 
 - (id) initWithDir:(NSString *)path fileName:(NSString *)name;
+- (NSImage *)snapshot:(NSString *)urlStr withSize:(CGSize)size;
 @end
