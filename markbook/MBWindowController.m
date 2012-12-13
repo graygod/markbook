@@ -109,7 +109,7 @@
                         //NSLog(@"url file is not existed. generating");
                         //[self performSelectorOnMainThread:@selector(rst2html:) withObject:urlStr waitUntilDone:YES];
                         if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
-                            [self.core rst2html:urlStr];
+                            [self.core updateHtml:urlStr];
                         } else if ([[urlStr pathExtension] isEqualToString:@"md"] || [[urlStr pathExtension] isEqualToString:@"markdown"]) {
                             [self.core md2html:urlStr];
                         }

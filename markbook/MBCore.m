@@ -156,7 +156,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
                 if ([modDate compare:[self.pathInfos objectForKey:fullPath]] == NSOrderedDescending) {
                     NSLog(@"file changed: %@", node);
                     if ([[node pathExtension] isEqualToString:@"rst"]) {
-                        [self rst2html:fullPath];
+                        [self updateHtml:fullPath];
                     } else if ([[node pathExtension] isEqualToString:@"md"] || [[node pathExtension] isEqualToString:@"markdown"]) {
                         [self md2html:fullPath];
                     }
@@ -192,6 +192,11 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
         //NSLog(@"reselect previous one");
         [self.treeController setSelectionIndexPath:[self indexPathOfString:prePath]];
     }
+}
+
+- (NSString *)getDestPath:(NSString *)path {
+    return [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
+
 }
 
 - (NSIndexPath*)indexPathOfString:(NSString *)path {
@@ -441,17 +446,40 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 	}
 }
 
+- (void) updateHtml:(NSString *)path {
+    NSString *dest = [self getDestPath:path];
+    [self rst:path tohtml:dest];
+    
+    NSString *fileContents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+    NSArray *allLinedStrings = [fileContents componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
+    
+    NSString *tmpFile;
+    if ([allLinedStrings count] > 20) {
+        tmpFile = [NSTemporaryDirectory() stringByAppendingPathComponent:path];
+        NSLog(@"%@", tmpFile);
+        NSArray *lines = [allLinedStrings subarrayWithRange:NSMakeRange(0, 20)];
+        NSString *content = [lines componentsJoinedByString:@"\n"];
+        [content writeToFile:tmpFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    } else {
+        tmpFile = path;
+    }
+    NSString *htmlFile = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:path]];
+    NSLog(@"create snapshot: %@", htmlFile);
+    [self rst:tmpFile tohtml:htmlFile];
+}
 
-- (void) rst2html:(NSString *)path{
+
+- (void) rst:(NSString *)path tohtml:(NSString *)dest{
     BOOL isDir;
     [self.fm fileExistsAtPath:path isDirectory:&isDir];
     if (isDir) {
         return;
     }
-
-    NSString *dest = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
+    
+    NSLog(@"%@", path);
     NSString *parent_path = [dest stringByDeletingLastPathComponent];
     if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
+        NSLog(@"create html path: %@", parent_path);
         [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
     }
     
@@ -541,20 +569,23 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     } else {
         self.title = [allLinedStrings objectAtIndex:0];
     }
-    self.abstract = [self snapshot:self.urlStr withSize:CGSizeMake(100,200)];
+    
+    //NSString *htmlFile = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:self.urlStr]];
+    NSString *htmlFile = [NSString stringWithFormat:@"file://%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:self.urlStr]];
+    self.abstract = [self snapshot:htmlFile withSize:CGSizeMake(100,200)];
 	return self;
 }
 
-- (NSImage *)snapshot:(NSString *)urlStr withSize:(CGSize)maxSize {
-    NSRect viewRect = NSMakeRect(0.0, 0.0, 600.0, 800.0);
+- (NSImage *)snapshot:(NSString *)dest_path withSize:(CGSize)maxSize {
+    NSRect viewRect = NSMakeRect(0.0, 0.0, 400.0, 100.0);
     
     WebView* webView = [[WebView alloc] initWithFrame:viewRect];
 	[[[webView mainFrame] frameView] setAllowsScrolling:NO];
 
-    NSString *dest_path = [NSString stringWithFormat:@"file://%@.html", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
-    NSLog(@"%@", dest_path);
+    NSLog(@"image snapshot: %@", dest_path);
     
     [webView setMainFrameURL:[dest_path stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+
     
     while([webView isLoading]) {
 		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
@@ -569,11 +600,11 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     NSLog(@"%f", imageRect.origin.y);
     NSLog(@"%f", imageRect.size.width);
     NSLog(@"%f", imageRect.size.height);
-    imageRect.size.width = 600;
-    imageRect.size.height = 800;
+    //imageRect.size.width = 600;
+    //imageRect.size.height = 800;
     
     NSBitmapImageRep *imageRep = [view.documentView bitmapImageRepForCachingDisplayInRect:imageRect];
-    //[imageRep setSize:imageRect.size];
+    [imageRep setSize:imageRect.size];
     [view.documentView cacheDisplayInRect:imageRect toBitmapImageRep:imageRep];
     
     NSImage *image = [[NSImage alloc] initWithSize:imageRect.size];
@@ -587,6 +618,5 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     
     return image;
 }
-
 
 @end

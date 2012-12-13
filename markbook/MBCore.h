@@ -24,7 +24,8 @@
 
 - (NSIndexPath*)indexPathOfString:(NSString *)path;
 - (void) addModifiedFilesAtPath: (NSString *)path;
-- (void) rst2html:(NSString *)path;
+- (void) rst:(NSString *)path tohtml:(NSString *)dest;
+- (void) updateHtml:(NSString *)path;
 - (void) md2html:(NSString *)path;
 - (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select;
 
