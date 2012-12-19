@@ -130,34 +130,31 @@
     NSString *parentDir;
     if ([[self.treeController selectedNodes] count] > 0) {
         NSTreeNode *selectedNode = [[self.treeController selectedNodes] objectAtIndex:0];
-        if ([selectedNode isLeaf]) {
-            parentDir = [[[selectedNode parentNode] representedObject] urlString];
-        } else {
-            parentDir = [[selectedNode representedObject] urlString];
-        }
+        parentDir = [[selectedNode representedObject] urlString];
     } else {
         parentDir = [self.core.root stringByAppendingPathComponent:@"notes"];
     }
     //NSLog(@"%@", [self indexPathOfString:parentDir]);
     
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setTimeStyle:NSDateFormatterNoStyle];
-    [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
+    //NSAlert *alert = [NSAlert alertWithMessageText:@"hello" defaultButton:@"OK" alternateButton:@"Cancle" otherButton:nil informativeTextWithFormat:@"nihao"];
+
+    NSAlert *theAlert = [[NSAlert alloc] init];
+    [theAlert addButtonWithTitle:@"创建"];
+    [theAlert addButtonWithTitle:@"取消"];
+    [theAlert setMessageText:@"笔记名称："];
     
-    NSString *content = [NSString stringWithFormat:@"=====\nTitle\n=====\n\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
-    NSData *fileContents = [content dataUsingEncoding:NSUTF8StringEncoding];
-    [self.fm createFileAtPath:[parentDir stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
+    NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
     
-    //[self addChild:[parentDir stringByAppendingPathComponent:UNTITLED_NAME] withName:UNTITLED_NAME selectParent:YES];
-    //[self addFolder:UNTITLED_NAME withURL: atIndexPath:(NSIndexPath*)@""];
+    [theAlert setAccessoryView:input];
+    [theAlert beginSheetModalForWindow:self.mainWindow modalDelegate:self didEndSelector:@selector(addAlertDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void*)parentDir];
 }
 
 - (IBAction)delFileAction:(id)sender {
-    if ([[self.treeController selectedNodes] count] == 0) {
+    if ([[self.noteArray selectedObjects] count] == 0) {
         return;
     }
-    NSString *path = [[[[self.treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
-    //NSLog(@"%@", path);
+    NSString *path = [[[self.noteArray selectedObjects] objectAtIndex:0] urlStr];
+    NSLog(@"%@", path);
     NSAlert *theAlert = [[NSAlert alloc] init];
     [theAlert addButtonWithTitle:@"好"];
     [theAlert addButtonWithTitle:@"取消"];
@@ -166,12 +163,39 @@
     [theAlert beginSheetModalForWindow:self.mainWindow modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void*) path];
 }
 
+- (void)addAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)path {
+    //NSArray *arr = (__bridge NSArray *)array;
+    if (returnCode == NSAlertFirstButtonReturn) {
+        NSLog(@"%@", alert);
+        
+
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setTimeStyle:NSDateFormatterNoStyle];
+        [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
+        
+        NSString *content = [NSString stringWithFormat:@"=====================\nhello\n=====================\n\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
+        NSData *fileContents = [content dataUsingEncoding:NSUTF8StringEncoding];
+        [self.fm createFileAtPath:[(__bridge NSString*)path stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
+         NoteSnap* note = [[NoteSnap alloc] initWithDir:(__bridge NSString*)path fileName:UNTITLED_NAME];
+        [self.notes addObject:note];
+        [self.noteArray setSelectsInsertedObjects:YES];
+        [self.noteArray setContent:self.notes];
+
+    } else if (returnCode == NSAlertSecondButtonReturn) {
+        NSLog(@"Cancle");
+    } else {
+        NSLog(@"other");
+    }
+}
+
 - (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)path {
     if (returnCode == NSAlertFirstButtonReturn) {
         //NSLog(@"Move to trash");
         [[NSWorkspace sharedWorkspace] recycleURLs:[NSArray arrayWithObjects:[NSURL fileURLWithPath:(__bridge NSString *)path], nil] completionHandler:^(NSDictionary *newURLs, NSError *error) {
             if (error != nil) {
             }
+            [self.notes removeObject:[[self.noteArray selectedObjects] objectAtIndex:0]];
+            [self.noteArray setContent:self.notes];
         }];
     } else if (returnCode == NSAlertSecondButtonReturn) {
         //NSLog(@"Cancle");
@@ -334,7 +358,7 @@
 	if ([selection count] == 1) {
         NSString *urlStr = [[selection objectAtIndex:0] urlString];
         if (urlStr) {
-            self.notes = [self.core listDirectory:urlStr withView:self.webView];
+            self.notes =[[NSMutableArray alloc] initWithArray:[self.core listDirectory:urlStr withView:self.webView]];
         }
     }
 }

@@ -26,7 +26,7 @@
 @property (strong) IBOutlet NSTreeController *treeController;
 @property (weak) IBOutlet NSCollectionView *myCollectionView;
 @property (strong) IBOutlet NSArrayController *noteArray;
-@property (strong, nonatomic) NSArray *notes;
+@property (strong, nonatomic) NSMutableArray *notes;
 
 @property (strong) NSImage *folderImage;
 @property (strong) NSArray *dragNodesArray;

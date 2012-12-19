@@ -8,7 +8,7 @@ task :info do |t|
 end
 
 task :xcode do |t|
-	sh "xcodebuild"
+	sh "xcodebuild -sdk macosx10.8"
     File.directory?"/tmp/MarkBook" or `mkdir /tmp/MarkBook`
 	sh "rm -rf /tmp/MarkBook/MarkBook.app"
 	sh "cp -rf build/Release/MarkBook.app /tmp/MarkBook/MarkBook.app"
