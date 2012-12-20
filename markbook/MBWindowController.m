@@ -108,11 +108,7 @@
                     if ( ! [self.fm fileExistsAtPath:dest_path isDirectory:nil]) {
                         //NSLog(@"url file is not existed. generating");
                         //[self performSelectorOnMainThread:@selector(rst2html:) withObject:urlStr waitUntilDone:YES];
-                        if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
-                            [self.core updateHtml:urlStr];
-                        } else if ([[urlStr pathExtension] isEqualToString:@"md"] || [[urlStr pathExtension] isEqualToString:@"markdown"]) {
-                            [self.core md2html:urlStr];
-                        }
+                        [self.core updateHtml:urlStr];
                     }
                     if ([[urlStr pathExtension] isEqualToString:@"rst"]) {
                         [self.webView setMainFrameURL:[[NSString stringWithFormat:@"file://%@", dest_path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];

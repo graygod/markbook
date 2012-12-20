@@ -1,16 +1,16 @@
 DONE:
 
-点击显示窗口
-解决初始化时null错误
-添加文件
-markdown支持
-删除文件
-move to applications folder
+* 点击显示窗口
+* 解决初始化时null错误
+* 添加文件
+* markdown支持
+* 删除文件
+* move to applications folder
+* 三栏
 
 TODO:
 
 * 新建文件时，全选新建文件的文件名，方便直接修改文件名
-* 三栏
 * 快捷键和菜单栏支持：新建(command + n)，删除（delete，确认窗）
 * 树状结构：
 

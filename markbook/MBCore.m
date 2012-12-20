@@ -155,11 +155,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
             if ([self.pathInfos objectForKey:path]) {
                 if ([modDate compare:[self.pathInfos objectForKey:fullPath]] == NSOrderedDescending) {
                     NSLog(@"file changed: %@", node);
-                    if ([[node pathExtension] isEqualToString:@"rst"]) {
-                        [self updateHtml:fullPath];
-                    } else if ([[node pathExtension] isEqualToString:@"md"] || [[node pathExtension] isEqualToString:@"markdown"]) {
-                        [self md2html:fullPath];
-                    }
+                    [self updateHtml:fullPath];
                     [[NSNotificationCenter defaultCenter]
                      postNotificationName:@"fileContentChangedNotification" object:self
                      userInfo:[NSDictionary dictionaryWithObject:fullPath forKey:@"urlStr"]];
@@ -448,7 +444,34 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 
 - (void) updateHtml:(NSString *)path {
     NSString *dest = [self getDestPath:path];
-    [self rst:path tohtml:dest];
+    NSInteger type;
+
+    BOOL isDir;
+    [self.fm fileExistsAtPath:path isDirectory:&isDir];
+    if (isDir) {
+        return;
+    }
+    
+    NSLog(@"%@", path);
+    NSString *parent_path = [dest stringByDeletingLastPathComponent];
+    if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
+        NSLog(@"create html path: %@", parent_path);
+        [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
+    }
+
+    if ([[path pathExtension] isEqualToString:@"rst"]) {
+        type = 0;
+        [self rst:path tohtml:dest];
+    } else if ([[path pathExtension] isEqualToString:@"md"] || [[path pathExtension] isEqualToString:@"markdown"]) {
+        type = 1;
+        [self md:path tohtml:dest];
+    } else {
+        return;
+    }
+    [self createSnapShot:path withType:type];
+}
+
+- (void) createSnapShot:(NSString *)path withType:(NSInteger)type {
     
     NSString *fileContents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
     NSArray *allLinedStrings = [fileContents componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
@@ -463,25 +486,25 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     } else {
         tmpFile = path;
     }
-    NSString *htmlFile = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:path]];
-    NSLog(@"create snapshot: %@", htmlFile);
-    [self rst:tmpFile tohtml:htmlFile];
+    NSString *dest = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:path]];
+
+    NSString *parent_path = [dest stringByDeletingLastPathComponent];
+    if ( ! [self.fm fileExistsAtPath:dest isDirectory:nil]) {
+        if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
+            NSLog(@"create html path: %@", parent_path);
+            [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
+        }
+
+        if (type == 0) {
+            [self rst:tmpFile tohtml:dest];
+        } else if (type == 1) {
+            [self md:tmpFile tohtml:dest];
+        }
+        NSLog(@"create snapshot: %@", dest);
+    }
 }
 
-
 - (void) rst:(NSString *)path tohtml:(NSString *)dest{
-    BOOL isDir;
-    [self.fm fileExistsAtPath:path isDirectory:&isDir];
-    if (isDir) {
-        return;
-    }
-    
-    NSLog(@"%@", path);
-    NSString *parent_path = [dest stringByDeletingLastPathComponent];
-    if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
-        NSLog(@"create html path: %@", parent_path);
-        [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
-    }
     
     NSTask *task = [[NSTask alloc] init];
     NSString *rst2html_command = [EGGS_ROOT stringByAppendingPathComponent:@"bin/rst2html.py"];
@@ -501,24 +524,10 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     }
 }
 
-- (void) md2html:(NSString *)path {
-    BOOL isDir;
-    [self.fm fileExistsAtPath:path isDirectory:&isDir];
-    if (isDir) {
-        return;
-    }
+- (void) md:(NSString *)path tohtml:(NSString *)dest {
 
-    NSString *dest = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
-    NSString *parent_path = [dest stringByDeletingLastPathComponent];
-    if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
-        [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
-    }
-    
     NSTask *task = [[NSTask alloc] init];
-
-
     NSArray *args = [NSArray arrayWithObjects:path, nil];
-
     NSPipe *pipe;
     pipe = [NSPipe pipe];
     [task setStandardOutput: pipe];
@@ -550,6 +559,19 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     for(NSString *node in nodes) {
         if (! [[NSArray arrayWithObjects:@"rst", @"md", @"markdown", nil] containsObject:[node pathExtension]] ) {
             continue;
+        }
+
+        NSString *fullPath = [path stringByAppendingPathComponent:node];
+        NSInteger type;
+        if ([[node pathExtension] isEqualToString:@"rst"]) {
+            type = 0;
+        } else if ([[node pathExtension] isEqualToString:@"md"] || [[node pathExtension] isEqualToString:@"markdown"]) {
+            type = 1;
+        }
+
+        NSString *htmlFile = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:path]];
+        if ( ! [self.fm fileExistsAtPath:htmlFile isDirectory:nil]) {
+            [self createSnapShot:fullPath withType:type];
         }
         NoteSnap* note = [[NoteSnap alloc] initWithDir:path fileName:node];
         [arrays addObject:note];

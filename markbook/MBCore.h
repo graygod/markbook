@@ -26,7 +26,7 @@
 - (void) addModifiedFilesAtPath: (NSString *)path;
 - (void) rst:(NSString *)path tohtml:(NSString *)dest;
 - (void) updateHtml:(NSString *)path;
-- (void) md2html:(NSString *)path;
+- (void) md:(NSString *)path tohtml:(NSString *)dest;
 - (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select;
 
 - (NSArray *)recurise:(NSString *)dir;
