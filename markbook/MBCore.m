@@ -486,6 +486,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     NSTask *task = [[NSTask alloc] init];
     NSString *rst2html_command = [EGGS_ROOT stringByAppendingPathComponent:@"bin/rst2html.py"];
     NSArray *args = [NSArray arrayWithObjects:rst2html_command, @"--stylesheet-path=/Applications/MarkBook.app/Contents/Resources/myeggs/default.css", path, dest, nil];
+    //NSArray *args = [NSArray arrayWithObjects:rst2html_command, path, dest, nil];
+
     [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
     [task setLaunchPath:[EGGS_ROOT stringByAppendingPathComponent:@"bin/mypython"]];
     [task setArguments:args];
@@ -581,6 +583,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     
     WebView* webView = [[WebView alloc] initWithFrame:viewRect];
 	[[[webView mainFrame] frameView] setAllowsScrolling:NO];
+    // 去掉默认的白底背景
+    [webView setDrawsBackground:NO];
 
     NSLog(@"image snapshot: %@", dest_path);
     
@@ -596,26 +600,16 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     WebFrameView *view = webView.mainFrame.frameView;
     NSRect imageRect = view.documentView.frame;
     
-    NSLog(@"%f", imageRect.origin.x);
-    NSLog(@"%f", imageRect.origin.y);
-    NSLog(@"%f", imageRect.size.width);
-    NSLog(@"%f", imageRect.size.height);
-    //imageRect.size.width = 600;
-    //imageRect.size.height = 800;
-    
     NSBitmapImageRep *imageRep = [view.documentView bitmapImageRepForCachingDisplayInRect:imageRect];
     [imageRep setSize:imageRect.size];
     [view.documentView cacheDisplayInRect:imageRect toBitmapImageRep:imageRep];
     
     NSImage *image = [[NSImage alloc] initWithSize:imageRect.size];
-    NSLog(@"%f", imageRect.size.width);
-    NSLog(@"%f", imageRect.size.height);
     
     [image addRepresentation:imageRep];
     //image = [NSImage imageNamed:@"Reeder-Noise.png"];
     
-    NSLog(@"%@", image);
-    
+    //[image setBackgroundColor:[NSColor clearColor]];
     return image;
 }
 
