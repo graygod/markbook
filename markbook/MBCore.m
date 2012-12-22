@@ -478,27 +478,54 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     
     NSString *tmpFile;
     if ([allLinedStrings count] > 20) {
-        tmpFile = [NSTemporaryDirectory() stringByAppendingPathComponent:path];
+        tmpFile = [NSTemporaryDirectory() stringByAppendingPathComponent:[path lastPathComponent]];
         NSArray *lines = [allLinedStrings subarrayWithRange:NSMakeRange(0, 20)];
         NSString *content = [lines componentsJoinedByString:@"\n"];
         [content writeToFile:tmpFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
     } else {
         tmpFile = path;
     }
-    NSString *dest = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:path]];
+    
+    NSString *dest = [[NSTemporaryDirectory() stringByAppendingPathComponent:[path lastPathComponent]] stringByAppendingPathExtension:@"html"];
 
     NSString *parent_path = [dest stringByDeletingLastPathComponent];
-    if ( ! [self.fm fileExistsAtPath:dest isDirectory:nil]) {
-        if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
-            [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
-        }
-
-        if (type == 0) {
-            [self rst:tmpFile tohtml:dest];
-        } else if (type == 1) {
-            [self md:tmpFile tohtml:dest];
-        }
+    if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
+        [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
     }
+
+    if (type == 0) {
+        [self rst:tmpFile tohtml:dest];
+    } else if (type == 1) {
+        [self md:tmpFile tohtml:dest];
+    }
+    
+    [self snapshot:path withSize:CGSizeMake(218, 179)];
+}
+
+- (void *)snapshot:(NSString *)path withSize:(CGSize)maxSize {
+    NSRect viewRect = NSMakeRect(0.0, 0.0, maxSize.width, maxSize.height);
+    
+    WebView* webView = [[WebView alloc] initWithFrame:viewRect];
+	[[[webView mainFrame] frameView] setAllowsScrolling:NO];
+    [[webView preferences] setDefaultFontSize:12];
+    // 去掉默认的白底背景
+    [webView setDrawsBackground:NO];
+    
+    //NSLog(@"image snapshot: %@", dest_path);
+    
+    NSString *dest_path = [NSString stringWithFormat:@"file://%@", [[NSTemporaryDirectory() stringByAppendingPathComponent:[path lastPathComponent]] stringByAppendingPathExtension:@"html"]];
+    
+    [webView setMainFrameURL:[dest_path stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    
+    while([webView isLoading]) {
+		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+	}
+	[webView display];
+    NSBitmapImageRep *imageRep = [webView bitmapImageRepForCachingDisplayInRect:viewRect];
+    [webView cacheDisplayInRect:viewRect toBitmapImageRep:imageRep];
+    NSData *data = [imageRep representationUsingType: NSPNGFileType properties: nil];
+    NSString *img_path = [NSString stringWithFormat:@"%@.png", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
+    [data writeToFile:img_path atomically:NO];
 }
 
 - (void) rst:(NSString *)path tohtml:(NSString *)dest{
@@ -566,8 +593,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
             type = 1;
         }
 
-        NSString *htmlFile = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:path]];
-        if ( ! [self.fm fileExistsAtPath:htmlFile isDirectory:nil]) {
+        NSString *pngFile = [NSString stringWithFormat:@"%@.png", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:fullPath]];
+        if ( ! [self.fm fileExistsAtPath:pngFile isDirectory:nil]) {
+            //NSLog(@"create snap shot image:%@", pngFile);
             [self createSnapShot:fullPath withType:type];
         }
         NoteSnap* note = [[NoteSnap alloc] initWithDir:path fileName:node];
@@ -591,41 +619,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
         self.title = [allLinedStrings objectAtIndex:0];
     }
     
-    //NSString *htmlFile = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:self.urlStr]];
-    NSString *htmlFile = [NSString stringWithFormat:@"file://%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:self.urlStr]];
-    self.abstract = [self snapshot:htmlFile withSize:CGSizeMake(218,179)];
+    NSString *img_path = [NSString stringWithFormat:@"%@.png", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:self.urlStr]];
+    self.abstract = [[NSImage alloc] initWithContentsOfFile:img_path];
 	return self;
-}
-
-- (NSImage *)snapshot:(NSString *)dest_path withSize:(CGSize)maxSize {
-    NSRect viewRect = NSMakeRect(0.0, 0.0, maxSize.width, maxSize.height);
-    
-    WebView* webView = [[WebView alloc] initWithFrame:viewRect];
-	[[[webView mainFrame] frameView] setAllowsScrolling:NO];
-    [[webView preferences] setDefaultFontSize:6];
-    // 去掉默认的白底背景
-    [webView setDrawsBackground:NO];
-
-    //NSLog(@"image snapshot: %@", dest_path);
-    
-    [webView setMainFrameURL:[dest_path stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-
-    
-    while([webView isLoading]) {
-		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
-	}
-    
-	[webView display];
-    
-    //NSView *docView = webView.mainFrame.frameView.documentView;
-    
-    NSBitmapImageRep *imageRep = [webView bitmapImageRepForCachingDisplayInRect:viewRect];
-    [webView cacheDisplayInRect:viewRect toBitmapImageRep:imageRep];
-    
-    NSImage *image = [[NSImage alloc] initWithSize:viewRect.size];
-    
-    [image addRepresentation:imageRep];
-    return image;
 }
 
 @end

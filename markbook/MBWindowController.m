@@ -84,7 +84,7 @@
 }
 
 - (void)reloadWebView:(NSNotification *)aNotification {
-	NSString *urlStr = [[aNotification userInfo] objectForKey:@"urlStr"];
+	//NSString *urlStr = [[aNotification userInfo] objectForKey:@"urlStr"];
     [self.webView reload:self];
 }
 

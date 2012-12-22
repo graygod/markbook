@@ -41,5 +41,4 @@
 @property (strong) NSImage *abstract;
 
 - (id) initWithDir:(NSString *)path fileName:(NSString *)name;
-- (NSImage *)snapshot:(NSString *)urlStr withSize:(CGSize)size;
 @end
