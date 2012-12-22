@@ -191,8 +191,24 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 }
 
 - (NSString *)getDestPath:(NSString *)path {
-    return [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
+    path = [path stringByDeletingPathExtension];
+    NSArray* pathComponents = [path pathComponents];
 
+    NSString* lastTwoPath;
+    if ([pathComponents count] > 2) {
+        NSArray* lastTwoArray = [pathComponents subarrayWithRange:NSMakeRange([pathComponents count]-2,2)];
+        lastTwoPath = [NSString pathWithComponents:lastTwoArray];
+    } else {
+        lastTwoPath = path;
+    }
+
+    NSString *dest = [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:lastTwoPath]; 
+    NSString *parent_path = [dest stringByDeletingLastPathComponent];
+    if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
+        NSLog(@"create path: %@", parent_path);
+        [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
+    }
+    return dest;
 }
 
 - (NSIndexPath*)indexPathOfString:(NSString *)path {
@@ -443,7 +459,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 }
 
 - (void) updateHtml:(NSString *)path {
-    NSString *dest = [self getDestPath:path];
+    NSString *dest = [[self getDestPath:path] stringByAppendingPathExtension:@"html"];
     NSInteger type;
 
     BOOL isDir;
@@ -452,13 +468,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
         return;
     }
     
-    NSLog(@"%@", path);
-    NSString *parent_path = [dest stringByDeletingLastPathComponent];
-    if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
-        NSLog(@"create html path: %@", parent_path);
-        [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
-    }
-
     if ([[path pathExtension] isEqualToString:@"rst"]) {
         type = 0;
         [self rst:path tohtml:dest];
@@ -502,7 +511,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     [self snapshot:path withSize:CGSizeMake(218, 179)];
 }
 
-- (void *)snapshot:(NSString *)path withSize:(CGSize)maxSize {
+- (void) snapshot:(NSString *)path withSize:(CGSize)maxSize {
     NSRect viewRect = NSMakeRect(0.0, 0.0, maxSize.width, maxSize.height);
     
     WebView* webView = [[WebView alloc] initWithFrame:viewRect];
@@ -524,7 +533,8 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     NSBitmapImageRep *imageRep = [webView bitmapImageRepForCachingDisplayInRect:viewRect];
     [webView cacheDisplayInRect:viewRect toBitmapImageRep:imageRep];
     NSData *data = [imageRep representationUsingType: NSPNGFileType properties: nil];
-    NSString *img_path = [NSString stringWithFormat:@"%@.png", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path]];
+    NSString *img_path = [[self getDestPath:path] stringByAppendingPathExtension:@"png"];
+    NSLog(@"save image: %@", img_path);
     [data writeToFile:img_path atomically:NO];
 }
 
@@ -577,7 +587,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     [string writeToFile:dest atomically:YES encoding:NSUTF8StringEncoding error:nil];
 }
 
-- (NSArray *) listDirectory:(NSString *)path withView:(WebView *)view {
+- (NSArray *) listDirectory:(NSString *)path {
     NSArray *nodes = [self.fm contentsOfDirectoryAtPath:path error:nil];
     NSMutableArray *arrays = [[NSMutableArray alloc] initWithCapacity:100];
     for(NSString *node in nodes) {
@@ -593,12 +603,12 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
             type = 1;
         }
 
-        NSString *pngFile = [NSString stringWithFormat:@"%@.png", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:fullPath]];
-        if ( ! [self.fm fileExistsAtPath:pngFile isDirectory:nil]) {
-            //NSLog(@"create snap shot image:%@", pngFile);
+        NSString *img_path = [[self getDestPath:fullPath] stringByAppendingPathExtension:@"png"];
+        if ( ! [self.fm fileExistsAtPath:img_path isDirectory:nil]) {
+            NSLog(@"create snap shot image:%@", img_path);
             [self createSnapShot:fullPath withType:type];
         }
-        NoteSnap* note = [[NoteSnap alloc] initWithDir:path fileName:node];
+        NoteSnap* note = [[NoteSnap alloc] initWithFile:fullPath snapshot:img_path];
         [arrays addObject:note];
     }
     return arrays;
@@ -608,10 +618,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 
 @implementation NoteSnap
 
-- (id) initWithDir:(NSString *)path fileName:(NSString *)name {
-    self.root = [NSHomeDirectory() stringByAppendingPathComponent:@".MarkBook"];
-    self.urlStr = [path stringByAppendingPathComponent:name];
-    NSString *fileContents = [NSString stringWithContentsOfFile:self.urlStr encoding:NSUTF8StringEncoding error:nil];
+- (id) initWithFile:(NSString *)path snapshot:(NSString *)img_path {
+    self.urlStr = path;
+    NSString *fileContents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
     NSArray *allLinedStrings = [fileContents componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
     if ([allLinedStrings count] > 1) {
         self.title = [allLinedStrings objectAtIndex:1];
@@ -619,7 +628,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
         self.title = [allLinedStrings objectAtIndex:0];
     }
     
-    NSString *img_path = [NSString stringWithFormat:@"%@.png", [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:self.urlStr]];
     self.abstract = [[NSImage alloc] initWithContentsOfFile:img_path];
 	return self;
 }

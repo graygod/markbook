@@ -28,9 +28,10 @@
 - (void) updateHtml:(NSString *)path;
 - (void) md:(NSString *)path tohtml:(NSString *)dest;
 - (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select;
+- (NSString *) getDestPath:(NSString *)path;
 
 - (NSArray *)recurise:(NSString *)dir;
-- (NSArray *) listDirectory:(NSString *)path withView:(WebView *)view;
+- (NSArray *) listDirectory:(NSString *)path;
 @end
 
 @interface NoteSnap: NSObject
@@ -40,5 +41,5 @@
 @property (strong) NSString *urlStr;
 @property (strong) NSImage *abstract;
 
-- (id) initWithDir:(NSString *)path fileName:(NSString *)name;
+- (id) initWithFile:(NSString *)path snapshot:(NSString *)img_path;
 @end

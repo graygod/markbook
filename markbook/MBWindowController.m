@@ -101,7 +101,7 @@
                     // this will tell our WebUIDelegate not to retarget first responder since some web pages force
                     // forus to their text fields - we want to keep our outline view in focus.
 
-                    NSString *dest_path = [NSString stringWithFormat:@"%@.html", [[self.core.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:urlStr]];
+                    NSString *dest_path = [self getHtmlPath:urlStr];
                     //NSLog(@"%@", dest_path);
                     
                     if ( ! [self.fm fileExistsAtPath:dest_path isDirectory:nil]) {
@@ -168,7 +168,9 @@
         NSString *content = [NSString stringWithFormat:@"=====================\nUntitled Document\n=====================\n\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
         NSData *fileContents = [content dataUsingEncoding:NSUTF8StringEncoding];
         [self.fm createFileAtPath:[(__bridge NSString*)path stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
-         NoteSnap* note = [[NoteSnap alloc] initWithDir:(__bridge NSString*)path fileName:UNTITLED_NAME];
+        NSString *file_path = [(__bridge NSString*)path stringByAppendingPathComponent:UNTITLED_NAME];
+        NSString *img_path = [[self.core getDestPath:file_path] stringByAppendingPathExtension:@"png"];
+         NoteSnap* note = [[NoteSnap alloc] initWithFile:file_path snapshot:img_path];
         [self.notes addObject:note];
         [self.noteArray setSelectsInsertedObjects:YES];
         [self.noteArray setContent:self.notes];
@@ -197,6 +199,7 @@
 - (void) openNote:(id) sender {
     NoteSnap *note = [(NSArray *)sender objectAtIndex:0];
     NSString *app = [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"];
+    NSLog(@"open note:%@", [note urlStr]);
     [[NSWorkspace sharedWorkspace] openFile:[note urlStr] withApplication:app];
 }
 
@@ -291,7 +294,7 @@
 }
 
 - (NSString *)getHtmlPath:(NSString *)path {
-    return [[[self.core.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:path] stringByAppendingPathExtension:@"html"];
+    return [[self.core getDestPath:path] stringByAppendingPathExtension:@"html"];
 }
 
 - (BOOL)outlineView:(NSOutlineView *)outlineView shouldEditTableColumn:(NSTableColumn *)tableColumn item:(id)item
@@ -348,7 +351,7 @@
 	if ([selection count] == 1) {
         NSString *urlStr = [[selection objectAtIndex:0] urlString];
         if (urlStr) {
-            self.notes =[[NSMutableArray alloc] initWithArray:[self.core listDirectory:urlStr withView:self.webView]];
+            self.notes =[[NSMutableArray alloc] initWithArray:[self.core listDirectory:urlStr]];
         }
     }
 }
