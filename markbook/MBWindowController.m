@@ -85,7 +85,6 @@
 
 - (void)reloadWebView:(NSNotification *)aNotification {
 	NSString *urlStr = [[aNotification userInfo] objectForKey:@"urlStr"];
-    NSLog(@"%@", urlStr);
     [self.webView reload:self];
 }
 
@@ -150,7 +149,6 @@
         return;
     }
     NSString *path = [[[self.noteArray selectedObjects] objectAtIndex:0] urlStr];
-    NSLog(@"%@", path);
     NSAlert *theAlert = [[NSAlert alloc] init];
     [theAlert addButtonWithTitle:@"好"];
     [theAlert addButtonWithTitle:@"取消"];
@@ -162,14 +160,12 @@
 - (void)addAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)path {
     //NSArray *arr = (__bridge NSArray *)array;
     if (returnCode == NSAlertFirstButtonReturn) {
-        NSLog(@"%@", alert);
         
-
         NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
         [dateFormatter setTimeStyle:NSDateFormatterNoStyle];
         [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
         
-        NSString *content = [NSString stringWithFormat:@"=====================\nhello\n=====================\n\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
+        NSString *content = [NSString stringWithFormat:@"=====================\nUntitled Document\n=====================\n\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
         NSData *fileContents = [content dataUsingEncoding:NSUTF8StringEncoding];
         [self.fm createFileAtPath:[(__bridge NSString*)path stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
          NoteSnap* note = [[NoteSnap alloc] initWithDir:(__bridge NSString*)path fileName:UNTITLED_NAME];
@@ -178,9 +174,7 @@
         [self.noteArray setContent:self.notes];
 
     } else if (returnCode == NSAlertSecondButtonReturn) {
-        NSLog(@"Cancle");
     } else {
-        NSLog(@"other");
     }
 }
 
@@ -605,7 +599,7 @@
 - (IBAction)doubleClick:(id)sender {
     if ([[self.noteArray selectedObjects] count] == 1) {
         NoteSnap *note = (NoteSnap *)[[self.noteArray selectedObjects] objectAtIndex:0];
-        NSLog(@"double click selection: %@", note.title);
+        //NSLog(@"double click selection: %@", note.title);
         NSString *app = [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"];
         [[NSWorkspace sharedWorkspace] openFile:note.urlStr withApplication:app];
     }

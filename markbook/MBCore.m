@@ -114,7 +114,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     NSArray *nodes = [self.fm contentsOfDirectoryAtPath:path error:nil];
     BOOL isDir;
     
-    NSLog(@"%@", path);
+    //NSLog(@"%@", path);
     
     if ( ![self.fm fileExistsAtPath:path isDirectory:&isDir]) {
         NSLog(@"ERROR: path NOT exist: %@", path);
@@ -479,7 +479,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     NSString *tmpFile;
     if ([allLinedStrings count] > 20) {
         tmpFile = [NSTemporaryDirectory() stringByAppendingPathComponent:path];
-        NSLog(@"%@", tmpFile);
         NSArray *lines = [allLinedStrings subarrayWithRange:NSMakeRange(0, 20)];
         NSString *content = [lines componentsJoinedByString:@"\n"];
         [content writeToFile:tmpFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
@@ -491,7 +490,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     NSString *parent_path = [dest stringByDeletingLastPathComponent];
     if ( ! [self.fm fileExistsAtPath:dest isDirectory:nil]) {
         if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
-            NSLog(@"create html path: %@", parent_path);
             [self.fm createDirectoryAtPath:parent_path withIntermediateDirectories:YES attributes:NULL error:nil];
         }
 
@@ -500,7 +498,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
         } else if (type == 1) {
             [self md:tmpFile tohtml:dest];
         }
-        NSLog(@"create snapshot: %@", dest);
     }
 }
 
@@ -596,19 +593,20 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     
     //NSString *htmlFile = [NSString stringWithFormat:@"%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:self.urlStr]];
     NSString *htmlFile = [NSString stringWithFormat:@"file://%@.html", [[self.root stringByAppendingPathComponent:@"build/snapshot"] stringByAppendingPathComponent:self.urlStr]];
-    self.abstract = [self snapshot:htmlFile withSize:CGSizeMake(100,200)];
+    self.abstract = [self snapshot:htmlFile withSize:CGSizeMake(218,179)];
 	return self;
 }
 
 - (NSImage *)snapshot:(NSString *)dest_path withSize:(CGSize)maxSize {
-    NSRect viewRect = NSMakeRect(0.0, 0.0, 400.0, 100.0);
+    NSRect viewRect = NSMakeRect(0.0, 0.0, maxSize.width, maxSize.height);
     
     WebView* webView = [[WebView alloc] initWithFrame:viewRect];
 	[[[webView mainFrame] frameView] setAllowsScrolling:NO];
+    [[webView preferences] setDefaultFontSize:6];
     // 去掉默认的白底背景
     [webView setDrawsBackground:NO];
 
-    NSLog(@"image snapshot: %@", dest_path);
+    //NSLog(@"image snapshot: %@", dest_path);
     
     [webView setMainFrameURL:[dest_path stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 
@@ -619,19 +617,14 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     
 	[webView display];
     
-    WebFrameView *view = webView.mainFrame.frameView;
-    NSRect imageRect = view.documentView.frame;
+    //NSView *docView = webView.mainFrame.frameView.documentView;
     
-    NSBitmapImageRep *imageRep = [view.documentView bitmapImageRepForCachingDisplayInRect:imageRect];
-    [imageRep setSize:imageRect.size];
-    [view.documentView cacheDisplayInRect:imageRect toBitmapImageRep:imageRep];
+    NSBitmapImageRep *imageRep = [webView bitmapImageRepForCachingDisplayInRect:viewRect];
+    [webView cacheDisplayInRect:viewRect toBitmapImageRep:imageRep];
     
-    NSImage *image = [[NSImage alloc] initWithSize:imageRect.size];
+    NSImage *image = [[NSImage alloc] initWithSize:viewRect.size];
     
     [image addRepresentation:imageRep];
-    //image = [NSImage imageNamed:@"Reeder-Noise.png"];
-    
-    //[image setBackgroundColor:[NSColor clearColor]];
     return image;
 }
 
