@@ -516,7 +516,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     
     WebView* webView = [[WebView alloc] initWithFrame:viewRect];
 	[[[webView mainFrame] frameView] setAllowsScrolling:NO];
-    [[webView preferences] setDefaultFontSize:12];
+        [[webView preferences] setDefaultFontSize:10];
     // 去掉默认的白底背景
     [webView setDrawsBackground:NO];
     

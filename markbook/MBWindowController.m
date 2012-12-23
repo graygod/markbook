@@ -157,18 +157,37 @@
     [theAlert beginSheetModalForWindow:self.mainWindow modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void*) path];
 }
 
-- (void)addAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)path {
-    //NSArray *arr = (__bridge NSArray *)array;
+- (void)addAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)parent_path {
+    NSString *path = (__bridge NSString*)parent_path;
+    NSLog(@"%@", path);
     if (returnCode == NSAlertFirstButtonReturn) {
+        NSString *title = [(NSTextField *)alert.accessoryView stringValue];
+        NSInteger n = [title length];
+        /*
+        for(int i=0; i< [title length];i++){
+            int a = [title characterAtIndex:i];
+            if( a > 0x4e00 && a < 0x9fff)
+                n++;
+        }*/
+        for ( int i=0; i<[title length];++i) {
+            NSRange range = NSMakeRange(i, 1);
+            NSString *subString = [title substringWithRange:range];
+            const char *cString=[subString UTF8String];
+            if (strlen(cString)==1) {
+            }else if (strlen(cString)==3) {
+                n++;
+            }
+        }
         
         NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
         [dateFormatter setTimeStyle:NSDateFormatterNoStyle];
         [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
         
-        NSString *content = [NSString stringWithFormat:@"=====================\nUntitled Document\n=====================\n\n:Author: your_name\n:title: english_title\n:date: %@\n", [dateFormatter stringFromDate:[NSDate date]]];
+        NSString *mark = [@"" stringByPaddingToLength:n withString: @"=" startingAtIndex:0];
+        NSString *content = [NSString stringWithFormat:@"%@\n%@\n%@\n\n:Author: your_name\n:title: english_title\n:date: %@\n", mark,title, mark, [dateFormatter stringFromDate:[NSDate date]]];
         NSData *fileContents = [content dataUsingEncoding:NSUTF8StringEncoding];
-        [self.fm createFileAtPath:[(__bridge NSString*)path stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
-        NSString *file_path = [(__bridge NSString*)path stringByAppendingPathComponent:UNTITLED_NAME];
+        [self.fm createFileAtPath:[path stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
+        NSString *file_path = [path stringByAppendingPathComponent:UNTITLED_NAME];
         NSString *img_path = [[self.core getDestPath:file_path] stringByAppendingPathExtension:@"png"];
          NoteSnap* note = [[NoteSnap alloc] initWithFile:file_path snapshot:img_path];
         [self.notes addObject:note];
