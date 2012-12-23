@@ -62,6 +62,7 @@
 @implementation MBCore
 
 - (id)init {
+    self.note_types = [NSArray arrayWithObjects:@"rst", @"md", nil];
     self.root = [NSHomeDirectory() stringByAppendingPathComponent:@".MarkBook"];
     NSString *notes_path = [self.root stringByAppendingPathComponent:@"notes/"];
     self.contents = [[NSMutableArray alloc] init];
@@ -191,7 +192,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 }
 
 - (NSString *)getDestPath:(NSString *)path {
-    path = [path stringByDeletingPathExtension];
     NSArray* pathComponents = [path pathComponents];
 
     NSString* lastTwoPath;

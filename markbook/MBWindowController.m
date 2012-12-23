@@ -17,8 +17,6 @@
 #define FILEVIEW_NIB_NAME		@"FileView"		// nib name for the file view
 #define CHILDEDIT_NAME			@"ChildEdit"	// nib name for the child edit window controller
 
-#define UNTITLED_NAME			@"Untitled.rst"		// default name for added folders and leafs
-
 #define HTTP_PREFIX				@"/"
 
 // default folder titles
@@ -131,16 +129,24 @@
     }
     //NSLog(@"%@", [self indexPathOfString:parentDir]);
     
+    /*
+    [NSApp beginSheet:self.alertWindow
+       modalForWindow:self.mainWindow
+        modalDelegate:self
+       didEndSelector:@selector(addAlertDidEnd:returnCode:contextInfo:)
+          contextInfo:(__bridge void *)parentDir];
+    //[NSApp runModalForWindow:self.alertWindow];
+    
     //NSAlert *alert = [NSAlert alertWithMessageText:@"hello" defaultButton:@"OK" alternateButton:@"Cancle" otherButton:nil informativeTextWithFormat:@"nihao"];
+     */
 
     NSAlert *theAlert = [[NSAlert alloc] init];
     [theAlert addButtonWithTitle:@"创建"];
     [theAlert addButtonWithTitle:@"取消"];
-    [theAlert setMessageText:@"笔记名称："];
+    [theAlert setMessageText:@"请输入笔记名称，选择笔记类型。"];
     
-    NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
+    [theAlert setAccessoryView:self.addNoteView];
     
-    [theAlert setAccessoryView:input];
     [theAlert beginSheetModalForWindow:self.mainWindow modalDelegate:self didEndSelector:@selector(addAlertDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void*)parentDir];
 }
 
@@ -157,11 +163,31 @@
     [theAlert beginSheetModalForWindow:self.mainWindow modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void*) path];
 }
 
-- (void)addAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)parent_path {
+- (IBAction)closeNoteSheet:(id)sender {
+    [NSApp endSheet:self.alertWindow];
+}
+
+- (void)addAlertDidEnd:(NSAlert *)alertWindow returnCode:(NSInteger)returnCode contextInfo:(void *)parent_path {
     NSString *path = (__bridge NSString*)parent_path;
-    NSLog(@"%@", path);
     if (returnCode == NSAlertFirstButtonReturn) {
-        NSString *title = [(NSTextField *)alert.accessoryView stringValue];
+        NSLog(@"%@", path);
+        NSLog(@"%ld", returnCode);
+        //NSString *title = [(NSTextField *)alert.accessoryView stringValue];
+        NSString *title = self.note_title_field.stringValue;
+        NSString *extension = [self.core.note_types objectAtIndex:self.note_type_matrix.selectedRow];
+        NSString *file = [[path stringByAppendingPathComponent:title] stringByAppendingPathExtension:extension];
+        if ([self.fm fileExistsAtPath:file]) {
+            NSLog(@"Error, file Exists!");
+            //[NSApp stopModal];
+            
+            NSAlert *theAlert = [[NSAlert alloc] init];
+            [theAlert addButtonWithTitle:@"好"];
+            [theAlert setMessageText:[NSString stringWithFormat:@"已存在笔记： %@", [file lastPathComponent]]];
+            //[theAlert beginSheetModalForWindow:self.mainWindow modalDelegate:self didEndSelector:nil contextInfo:nil];
+            [theAlert runModal];
+            return;
+        }
+        
         NSInteger n = [title length];
         /*
         for(int i=0; i< [title length];i++){
@@ -184,12 +210,11 @@
         [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
         
         NSString *mark = [@"" stringByPaddingToLength:n withString: @"=" startingAtIndex:0];
-        NSString *content = [NSString stringWithFormat:@"%@\n%@\n%@\n\n:Author: your_name\n:title: english_title\n:date: %@\n", mark,title, mark, [dateFormatter stringFromDate:[NSDate date]]];
+        NSString *content = [NSString stringWithFormat:@"%@\n%@\n%@\n\n.. Author: your_name\n.. title:: english_title\n.. |date| date:: %@\n\n", mark,title, mark, [dateFormatter stringFromDate:[NSDate date]]];
         NSData *fileContents = [content dataUsingEncoding:NSUTF8StringEncoding];
-        [self.fm createFileAtPath:[path stringByAppendingPathComponent:UNTITLED_NAME] contents:fileContents attributes:nil];
-        NSString *file_path = [path stringByAppendingPathComponent:UNTITLED_NAME];
-        NSString *img_path = [[self.core getDestPath:file_path] stringByAppendingPathExtension:@"png"];
-         NoteSnap* note = [[NoteSnap alloc] initWithFile:file_path snapshot:img_path];
+        [self.fm createFileAtPath:file contents:fileContents attributes:nil];
+        NSString *img_path = [[self.core getDestPath:file] stringByAppendingPathExtension:@"png"];
+         NoteSnap* note = [[NoteSnap alloc] initWithFile:file snapshot:img_path];
         [self.notes addObject:note];
         [self.noteArray setSelectsInsertedObjects:YES];
         [self.noteArray setContent:self.notes];
@@ -197,6 +222,7 @@
     } else if (returnCode == NSAlertSecondButtonReturn) {
     } else {
     }
+    //[sheet orderOut:self];
 }
 
 - (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)path {

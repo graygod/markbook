@@ -16,6 +16,7 @@
 @property (strong, nonatomic) NSNumber *lastEventId;
 @property (nonatomic) FSEventStreamRef stream;
 
+@property (strong, nonatomic) NSArray* note_types;
 @property (strong, nonatomic) NSString* root;
 @property (strong, nonatomic) NSMutableArray *contents;
 @property (strong, nonatomic) NSMutableDictionary* pathInfos;

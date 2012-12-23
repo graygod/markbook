@@ -20,6 +20,9 @@
 @property (strong) IBOutlet NSScrollView *tableScrollView;
 @property (weak) IBOutlet NSTableView *tableView;
 @property (weak) IBOutlet NSScrollView *collectionScrollView;
+@property (weak) IBOutlet NSTextField *note_title_field;
+@property (weak) IBOutlet NSMatrix *note_type_matrix;
+@property (strong) IBOutlet NSView *addNoteView;
 
 @property (weak) IBOutlet WebView *webView;
 @property (weak) IBOutlet NSOutlineView *myOutlineView;
@@ -40,5 +43,6 @@
 
 - (IBAction)addFileAction:(id)sender;
 - (IBAction)delFileAction:(id)sender;
+- (IBAction)closeNoteSheet:(id)sender;
 
 @end
