@@ -30,18 +30,10 @@ MarkBook的文档路径为~/MarkBook/notes，在notes目录下创建目录或以
 
 若要修改rst文件的默认打开方式，请选中一个rst文件，右键，选择“显示简介”，找到"打开方式"，选择您喜爱的编辑器，比如MacVim，TextMate等，然后点击 "全部更改..."，这样下次双击MarkBook边栏中的rst文件，就会用您选择的编辑器打开了。
 
-发布到博客
-----------
+导入jekyll/Octopress博客
+-------------------------
 
-如果在rst文件内定义了如下内容：
-
-.. code-block:: rst
-
-    :date: 2012-08-31
-    :title: 欢迎页
-    :publish: YES
-
-就会在 ~/octopress/source/_posts/目录下创建 2012-08-31-filename.rst的博客文件，publish为NO时删除_posts下的上述文件。
+File -> Import Notes...，选择jekyll或Octopress博客的_posts目录，即可将该目录下的博客文章导入到MarkBook中管理。
 
 自带语法高亮
 ------------
@@ -65,3 +57,25 @@ MarkBook的文档路径为~/MarkBook/notes，在notes目录下创建目录或以
             printf("%p: %s\n", a[i], a[i]);
         }
     }
+
+TODO
+====
+
+Git版本控制
+------------
+
+像Xcode一样显示文件状态，同时添加git pull，git push按钮。
+
+发布到博客
+----------
+
+如果在rst文件内定义了如下内容：
+
+.. code-block:: rst
+
+    .. |date| date:: 2012-08-31
+    .. title:: first-blog
+    .. publish: YES
+
+就会在 ~/octopress/source/_posts/目录下创建 2012-08-31-first-blog.rst的博客文件，publish为NO时删除上述文件。
+
