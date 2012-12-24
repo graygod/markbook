@@ -18,28 +18,6 @@
 #define KEY_FOLDER				@"folder"
 #define KEY_ENTRIES				@"entries"
 
-// -------------------------------------------------------------------------------
-//	TreeAdditionObj
-//
-//	This object is used for passing data between the main and secondary thread
-//	which populates the outline view.
-// -------------------------------------------------------------------------------
-@interface TreeAdditionObj : NSObject
-{
-	NSIndexPath *indexPath;
-	NSString	*nodeURL;
-	NSString	*nodeName;
-	BOOL		selectItsParent;
-}
-
-@property (readonly) NSIndexPath *indexPath;
-@property (readonly) NSString *nodeURL;
-@property (readonly) NSString *nodeName;
-@property (readonly) BOOL selectItsParent;
-
-@end
-
-
 #pragma mark -
 
 @implementation TreeAdditionObj
@@ -58,6 +36,8 @@
 	return self;
 }
 @end
+
+
 
 @implementation MBCore
 
@@ -192,6 +172,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 }
 
 - (NSString *)getDestPath:(NSString *)path {
+    /*
     NSArray* pathComponents = [path pathComponents];
 
     NSString* lastTwoPath;
@@ -201,8 +182,9 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     } else {
         lastTwoPath = path;
     }
-
     NSString *dest = [[self.root stringByAppendingPathComponent:@"build"] stringByAppendingPathComponent:lastTwoPath]; 
+     */
+    NSString *dest = [path stringByReplacingOccurrencesOfString:@".MarkBook/source" withString:@".MarkBook/build"];
     NSString *parent_path = [dest stringByDeletingLastPathComponent];
     if ( ! [self.fm fileExistsAtPath:parent_path isDirectory:nil]) {
         NSLog(@"create path: %@", parent_path);

@@ -155,6 +155,21 @@
     }
 }
 
+- (IBAction)importNotesAction:(id)sender {
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    //[panel setDirectoryURL:[NSURL URLWithString:NSHomeDirectory()]];
+    [panel setCanChooseDirectories:YES];
+    //[panel setAllowedFileTypes:[NSDictionaryResultType]; // Set what kind of file to select.
+    // More panel configure code.
+    [panel beginSheetModalForWindow:self.myWindowController.mainWindow completionHandler: (^(NSInteger result){
+        if(result == NSOKButton) {
+            NSArray *fileURLs = [panel URLs];
+            NSLog(@"%@", [[fileURLs objectAtIndex:0] path]);
+            [self.myWindowController importNotes:[[fileURLs objectAtIndex:0] path]];
+        }
+    })];
+}
+
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
     // Save changes in the application's managed object context before the application terminates.

@@ -9,6 +9,29 @@
 #import <Foundation/Foundation.h>
 #import <WebKit/WebKit.h>
 
+// -------------------------------------------------------------------------------
+//	TreeAdditionObj
+//
+//	This object is used for passing data between the main and secondary thread
+//	which populates the outline view.
+// -------------------------------------------------------------------------------
+@interface TreeAdditionObj : NSObject
+{
+	NSIndexPath *indexPath;
+	NSString	*nodeURL;
+	NSString	*nodeName;
+	BOOL		selectItsParent;
+}
+
+@property (readonly) NSIndexPath *indexPath;
+@property (readonly) NSString *nodeURL;
+@property (readonly) NSString *nodeName;
+@property (readonly) BOOL selectItsParent;
+- (id)initWithURL:(NSString *)url withName:(NSString *)name selectItsParent:(BOOL)select;
+
+@end
+
+
 @interface MBCore : NSObject
 
 @property (strong) NSTreeController *treeController;

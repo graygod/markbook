@@ -26,10 +26,6 @@
 
 #define kNodesPBoardType		@"myNodesPBoardType"	// drag and drop pasteboard type
 
-@interface MBWindowController ()
-
-@end
-
 @implementation MBWindowController
 
 - (id)initWithWindow:(NSWindow *)window {
@@ -331,8 +327,9 @@
 	} else {
         NSString *oldPath = [[[[self.treeController selectedNodes] objectAtIndex:0] representedObject] urlString];
         NSString *newPath = [[oldPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:[fieldEditor string]];
-        newPath = [newPath stringByAppendingPathExtension:@"rst"];
+        oldPath = [oldPath stringByDeletingPathExtension];
         [self.fm moveItemAtPath:oldPath toPath:newPath error:nil];
+        [[[[self.treeController selectedNodes] objectAtIndex:0] representedObject] setUrlString:newPath];
         [self.fm moveItemAtPath:[self getHtmlPath:oldPath] toPath:[self getHtmlPath:newPath] error:nil];
 		return YES;
 	}
@@ -651,6 +648,101 @@
         NSString *app = [[NSUserDefaults standardUserDefaults] objectForKey:@"editor"];
         [[NSWorkspace sharedWorkspace] openFile:note.urlStr withApplication:app];
     }
+}
+
+- (void)importNotes:(NSString *)dir {
+    NSTreeNode *parentNode;
+    if ([self.treeController selectedNodes].count > 0) {
+        NSTreeNode *node = [[self.treeController selectedNodes] objectAtIndex:0];
+        if([node isLeaf]) {
+            parentNode = node.parentNode;
+        } else {
+            parentNode = node;
+        }
+    } else {
+        parentNode = [[[self.treeController arrangedObjects] childNodes] objectAtIndex:0];
+    }
+    NSString *dest = [[[parentNode representedObject] urlString] stringByAppendingPathComponent:[dir lastPathComponent]];
+    [self.fm createSymbolicLinkAtPath:dest withDestinationPath:dir error:nil];
+    [self addChild:dest withName:[dir lastPathComponent] selectParent:YES];
+}
+
+// -------------------------------------------------------------------------------
+//	performAddChild:treeAddition
+// -------------------------------------------------------------------------------
+- (void)performAddChild:(TreeAdditionObj *)treeAddition
+{
+	if ([[self.treeController selectedObjects] count] > 0) {
+		// we have a selection
+		if ([[[self.treeController selectedObjects] objectAtIndex:0] isLeaf]) {
+			// trying to add a child to a selected leaf node, so select its parent for add
+			[self selectParentFromSelection];
+		}
+	}
+	
+	// find the selection to insert our node
+	NSIndexPath *indexPath;
+	if ([[self.treeController selectedObjects] count] > 0) {
+		// we have a selection, insert at the end of the selection
+		indexPath = [self.treeController selectionIndexPath];
+		indexPath = [indexPath indexPathByAddingIndex:[[[[self.treeController selectedObjects] objectAtIndex:0] children] count]];
+	} else {
+		// no selection, just add the child to the end of the tree
+		indexPath = [NSIndexPath indexPathWithIndex:[self.contents count]];
+	}
+	
+	// create a leaf node
+	ChildNode *node = [[ChildNode alloc] initLeaf];
+	node.urlString = [treeAddition nodeURL];
+    
+	if ([treeAddition nodeURL]) {
+		if ([[treeAddition nodeURL] length] > 0) {
+			// the child to insert has a valid URL, use its display name as the node title
+			if ([treeAddition nodeName])
+                node.nodeTitle = [treeAddition nodeName];
+			else
+                node.nodeTitle = [self.fm displayNameAtPath:[node urlString]];
+		} else {
+			// the child to insert will be an empty URL
+            node.nodeTitle = @"Untitled";
+            node.urlString = @"http://";
+		}
+	}
+	
+	// the user is adding a child node, tell the controller directly
+	[self.treeController insertObject:node atArrangedObjectIndexPath:indexPath];
+    //NSLog(@"insert Object At Index Path: %@", indexPath);
+    
+	// adding a child automatically becomes selected by NSOutlineView, so keep its parent selected
+	if ([treeAddition selectItsParent])
+		[self selectParentFromSelection];
+}
+
+// -------------------------------------------------------------------------------
+//	selectParentFromSelection
+//
+//	Take the currently selected node and select its parent.
+// -------------------------------------------------------------------------------
+- (void)selectParentFromSelection
+{
+	if ([[self.treeController selectedNodes] count] > 0) {
+		NSTreeNode* firstSelectedNode = [[self.treeController selectedNodes] objectAtIndex:0];
+		NSTreeNode* parentNode = [firstSelectedNode parentNode];
+		if (parentNode) {
+			// select the parent
+			NSIndexPath* parentIndex = [parentNode indexPath];
+			[self.treeController setSelectionIndexPath:parentIndex];
+		} else {
+			// no parent exists (we are at the top of tree), so make no selection in our outline
+			NSArray* selectionIndexPaths = [self.treeController selectionIndexPaths];
+			[self.treeController removeSelectionIndexPaths:selectionIndexPaths];
+		}
+	}
+}
+
+- (void)addChild:(NSString *)url withName:(NSString *)nameStr selectParent:(BOOL)select {
+	TreeAdditionObj *treeObjInfo = [[TreeAdditionObj alloc] initWithURL:url withName:nameStr selectItsParent:select];	
+    [self performAddChild:treeObjInfo];
 }
 
 @end

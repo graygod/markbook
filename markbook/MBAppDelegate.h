@@ -24,5 +24,6 @@
 @property (strong, nonatomic) NSArray *apps;
 
 - (IBAction)saveAction:(id)sender;
+- (IBAction)importNotesAction:(id)sender;
 
 @end

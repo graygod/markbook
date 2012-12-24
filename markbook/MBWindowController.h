@@ -44,5 +44,6 @@
 - (IBAction)addFileAction:(id)sender;
 - (IBAction)delFileAction:(id)sender;
 - (IBAction)closeNoteSheet:(id)sender;
+- (void) importNotes:(NSString *)dir;
 
 @end
