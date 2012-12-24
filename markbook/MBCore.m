@@ -64,7 +64,7 @@
 - (id)init {
     self.note_types = [NSArray arrayWithObjects:@"rst", @"md", nil];
     self.root = [NSHomeDirectory() stringByAppendingPathComponent:@".MarkBook"];
-    NSString *notes_path = [self.root stringByAppendingPathComponent:@"notes/"];
+    NSString *source_path = [self.root stringByAppendingPathComponent:@"source/"];
     self.contents = [[NSMutableArray alloc] init];
     self.pathInfos = [[NSMutableDictionary alloc] initWithCapacity:300];
     self.fm = [NSFileManager defaultManager];
@@ -75,13 +75,13 @@
     
     [self buildTree];
     
-    if ( ![self.fm fileExistsAtPath:notes_path]) {
-        NSLog(@"NO MarkBook HOME found, create: %@", notes_path);
-        [self.fm createDirectoryAtPath:notes_path withIntermediateDirectories:YES attributes:NULL error:nil];
-        [self.fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"] toPath:[notes_path stringByAppendingPathComponent:@"welcome.rst"] error:nil];
-        [self.fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"markdown.md"] toPath:[notes_path stringByAppendingPathComponent:@"markdown.md"] error:nil];
+    if ( ![self.fm fileExistsAtPath:source_path]) {
+        NSLog(@"NO MarkBook HOME found, create: %@", source_path);
+        [self.fm createDirectoryAtPath:source_path withIntermediateDirectories:YES attributes:NULL error:nil];
+        [self.fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"] toPath:[source_path stringByAppendingPathComponent:@"样例笔记/welcome.rst"] error:nil];
+        [self.fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"markdown.md"] toPath:[source_path stringByAppendingPathComponent:@"样例笔记/markdown.md"] error:nil];
     } else {
-        NSLog(@"found MarkBook HOME: %@", notes_path);
+        NSLog(@"found MarkBook HOME: %@", source_path);
     }
 
     [self initializeEventStream];
@@ -89,7 +89,7 @@
 }
 
 - (void) initializeEventStream {
-    NSString *notesPath = [self.root stringByAppendingPathComponent:@"notes"];
+    NSString *notesPath = [self.root stringByAppendingPathComponent:@"source"];
     NSArray *pathsToWatch = [NSArray arrayWithObject:notesPath];
     FSEventStreamContext context = {0, (__bridge void *)self, NULL, NULL, NULL};
     NSTimeInterval latency = 0.1;
@@ -233,9 +233,13 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 
 - (void) buildTree {
 	self.buildingOutlineView = YES;		// indicate to ourselves we are building the default tree at startup
-    NSString *notesPath = [self.root stringByAppendingPathComponent:@"notes"];
-    NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[self.fm displayNameAtPath:notesPath], @"group", [self recurise:notesPath], @"entries", [NSString stringWithFormat:@"%@/", notesPath], KEY_URL, nil];
-    NSArray *entries = [[NSArray alloc] initWithObjects:notes, nil];
+    NSString *sourcePath = [self.root stringByAppendingPathComponent:@"source"];
+    NSMutableArray *entries = [[NSMutableArray alloc] initWithCapacity:100];
+    for (NSString *dir in [self.fm contentsOfDirectoryAtPath:sourcePath error:nil]) {
+        NSString *notesPath = [sourcePath stringByAppendingPathComponent:dir];
+        NSDictionary *notes = [[NSDictionary alloc] initWithObjectsAndKeys:[self.fm displayNameAtPath:notesPath], @"group", [self recurise:notesPath], @"entries", [NSString stringWithFormat:@"%@/", notesPath], KEY_URL, nil];
+        [entries addObject:notes];
+    }
     [self addEntries:(NSDictionary *)entries atIndexPath:(NSIndexPath*)@""];
 	self.buildingOutlineView = NO;		// we're done building our default tree
 }
