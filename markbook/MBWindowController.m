@@ -75,7 +75,20 @@
 	[self.myOutlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateSnapAndWebView:) name:@"fileContentChangedNotification" object:nil];
+    [self.webView setPolicyDelegate:self];
+}
 
+- (void)webView:(WebView *)webView 
+    decidePolicyForNavigationAction:(NSDictionary *)actionInformation
+    request:(NSURLRequest *)request frame:(WebFrame *)frame 
+    decisionListener:(id < WebPolicyDecisionListener >)listener
+{
+    NSString *host = [[request URL] host];
+    if (host) {
+        [[NSWorkspace sharedWorkspace] openURL:[request URL]];
+    } else {
+        [listener use];
+    }
 }
 
 - (void)updateSnapAndWebView:(NSNotification *)aNotification {
@@ -668,7 +681,8 @@
         parentNode = [[[self.treeController arrangedObjects] childNodes] objectAtIndex:0];
     }
     NSString *dest = [[[parentNode representedObject] urlString] stringByAppendingPathComponent:[dir lastPathComponent]];
-    [self.fm createSymbolicLinkAtPath:dest withDestinationPath:dir error:nil];
+    //[self.fm createSymbolicLinkAtPath:dest withDestinationPath:dir error:nil];
+    [self.fm copyItemAtPath:dir toPath:dest error:nil];
     [self addChild:dest withName:[dir lastPathComponent] selectParent:YES];
 }
 
