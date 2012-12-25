@@ -96,7 +96,12 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     
     //NSLog(@"%@", path);
     if ( ![self.fm fileExistsAtPath:path isDirectory:&isDir]) {
-        NSLog(@"ERROR: path NOT exist: %@", path);
+        //NSLog(@"ERROR: path NOT exist: %@", path);
+        return;
+    }
+
+    if ([[path pathComponents] containsObject:@".git"]) {
+        //NSLog(@"ignore git repo path: %@", path);
         return;
     }
     
