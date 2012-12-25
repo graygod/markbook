@@ -9,7 +9,7 @@
 #import "MBCore.h"
 #import "ChildNode.h"
 
-#define EGGS_ROOT               @"/Applications/MarkBook.app/Contents/Resources/myeggs"
+#define RESOURCE_ROOT           @"/Applications/MarkBook.app/Contents/Resources"
 
 #define KEY_NAME				@"name"
 #define KEY_URL					@"url"
@@ -46,25 +46,24 @@
     self.root = [NSHomeDirectory() stringByAppendingPathComponent:@".MarkBook"];
     NSString *source_path = [self.root stringByAppendingPathComponent:@"source/"];
     self.contents = [[NSMutableArray alloc] init];
-    self.pathInfos = [[NSMutableDictionary alloc] initWithCapacity:300];
-    self.fm = [NSFileManager defaultManager];
-    self.treeController = [[NSTreeController alloc] init];
 
-    self.treeController.childrenKeyPath = @"children";
-    self.treeController.leafKeyPath = @"isLeaf";
-    
-    [self buildTree];
-    
+    self.fm = [NSFileManager defaultManager];
     if ( ![self.fm fileExistsAtPath:source_path]) {
         NSLog(@"NO MarkBook HOME found, create: %@", source_path);
-        [self.fm createDirectoryAtPath:source_path withIntermediateDirectories:YES attributes:NULL error:nil];
-        [self.fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"welcome.rst"] toPath:[source_path stringByAppendingPathComponent:@"样例笔记/welcome.rst"] error:nil];
-        [self.fm copyItemAtPath:[EGGS_ROOT stringByAppendingPathComponent:@"markdown.md"] toPath:[source_path stringByAppendingPathComponent:@"样例笔记/markdown.md"] error:nil];
+        [self.fm createDirectoryAtPath:[source_path stringByAppendingPathComponent:@"MyNotes"] withIntermediateDirectories:YES attributes:NULL error:nil];
+        [self.fm copyItemAtPath:[RESOURCE_ROOT stringByAppendingPathComponent:@"Sample"] toPath:[source_path stringByAppendingPathComponent:@"MyNotes/Sample"] error:nil];
     } else {
         NSLog(@"found MarkBook HOME: %@", source_path);
     }
 
+    self.treeController = [[NSTreeController alloc] init];
+    self.treeController.childrenKeyPath = @"children";
+    self.treeController.leafKeyPath = @"isLeaf";
+    [self buildTree];
+
+    self.pathInfos = [[NSMutableDictionary alloc] initWithCapacity:300];
     [self initializeEventStream];
+
     return self;
 }
 
@@ -96,7 +95,6 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     BOOL isDir;
     
     //NSLog(@"%@", path);
-    
     if ( ![self.fm fileExistsAtPath:path isDirectory:&isDir]) {
         NSLog(@"ERROR: path NOT exist: %@", path);
         return;
@@ -527,12 +525,12 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
 - (void) rst:(NSString *)path tohtml:(NSString *)dest{
     
     NSTask *task = [[NSTask alloc] init];
-    NSString *rst2html_command = [EGGS_ROOT stringByAppendingPathComponent:@"bin/rst2html.py"];
+    NSString *rst2html_command = [RESOURCE_ROOT stringByAppendingPathComponent:@"myeggs/bin/rst2html.py"];
     NSArray *args = [NSArray arrayWithObjects:rst2html_command, @"--stylesheet-path=/Applications/MarkBook.app/Contents/Resources/myeggs/default.css", path, dest, nil];
     //NSArray *args = [NSArray arrayWithObjects:rst2html_command, path, dest, nil];
 
     [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
-    [task setLaunchPath:[EGGS_ROOT stringByAppendingPathComponent:@"bin/mypython"]];
+    [task setLaunchPath:[RESOURCE_ROOT stringByAppendingPathComponent:@"myeggs/bin/mypython"]];
     [task setArguments:args];
     [task launch];
     
@@ -556,7 +554,7 @@ void fsevents_callback(ConstFSEventStreamRef streamRef, void *userData, size_t n
     file = [pipe fileHandleForReading];
 
     [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys:@"zh_CN.UTF-8", @"LC_CTYPE", nil]];
-    [task setLaunchPath:[EGGS_ROOT stringByAppendingPathComponent:@"bin/markdown"]];
+    [task setLaunchPath:[RESOURCE_ROOT stringByAppendingPathComponent:@"myeggs/bin/markdown"]];
     [task setArguments:args];
     [task launch];
     

@@ -41,8 +41,7 @@
         
 		// cache the reused icon images
 		self.folderImage = [[NSWorkspace sharedWorkspace] iconForFileType:NSFileTypeForHFSTypeCode(kGenericFolderIcon)];
-		[self.folderImage setSize:NSMakeSize(16,16)];
-		
+		[self.folderImage setSize:NSMakeSize(18,18)];
     }
     return self;
 }
@@ -55,6 +54,13 @@
 
 
 - (void) awakeFromNib {
+    /*
+    [NSThread detachNewThreadSelector:	@selector(populateOutlineContents:)
+                                        toTarget:self		// we are the target
+                                        withObject:nil];
+                                        */
+    [self.noteArray addObserver:self forKeyPath:@"selectionIndexes" options:NSKeyValueObservingOptionNew context:nil];
+    [self populateOutlineContents:nil];
 	NSTableColumn *tableColumn = [self.myOutlineView tableColumnWithIdentifier:COLUMNID_NAME];
 	ImageAndTextCell *imageAndTextCell = [[ImageAndTextCell alloc] init];
 	[imageAndTextCell setEditable:YES];
@@ -66,19 +72,17 @@
     [self.addButton setImage:[NSImage imageNamed:NSImageNameAddTemplate]];
     [self.delButton setImage:[NSImage imageNamed:NSImageNameRemoveTemplate]];
     
-	[NSThread detachNewThreadSelector:	@selector(populateOutlineContents:)
-										toTarget:self		// we are the target
-										withObject:nil];
-    
 	[self.myOutlineView setSelectionHighlightStyle:NSTableViewSelectionHighlightStyleSourceList];
     
-    [self.noteArray addObserver:self forKeyPath:@"selectionIndexes" options:NSKeyValueObservingOptionNew context:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadWebView:) name:@"fileContentChangedNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateSnapAndWebView:) name:@"fileContentChangedNotification" object:nil];
+
 }
 
-- (void)reloadWebView:(NSNotification *)aNotification {
-	//NSString *urlStr = [[aNotification userInfo] objectForKey:@"urlStr"];
+- (void)updateSnapAndWebView:(NSNotification *)aNotification {
+	NSString *urlStr = [[aNotification userInfo] objectForKey:@"urlStr"];
+    NSString *img_path = [[self.core getDestPath:urlStr] stringByAppendingPathExtension:@"png"];
+    //[[[self.noteArray selectedObjects] objectAtIndex:0] setAbstract:[[NSImage alloc] initWithContentsOfFile:img_path]];
+    NSLog(@"%@", [[self.noteArray selectedObjects] objectAtIndex:0]);
     [self.webView reload:self];
 }
 
@@ -270,9 +274,10 @@
 	// remove the current selection
 	NSArray *selection = [self.treeController selectionIndexPaths];
 	[self.treeController removeSelectionIndexPaths:selection];
-    
+
 	[self.myOutlineView setHidden:NO];
     [self.myOutlineView expandItem:[[[self.treeController arrangedObjects] childNodes] objectAtIndex:0]];
+    [self.treeController setSelectionIndexPath:[[NSIndexPath indexPathWithIndex:0] indexPathByAddingIndex:0]];
 }
 
 #pragma mark - Node checks

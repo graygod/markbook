@@ -22,6 +22,7 @@
 		DA7491CA16672B1A001BC4A3 /* PFMoveApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = DA7491C916672B1A001BC4A3 /* PFMoveApplication.m */; };
 		DA7491CE16672B66001BC4A3 /* NSString+SymlinksAndAliases.m in Sources */ = {isa = PBXBuildFile; fileRef = DA7491CD16672B66001BC4A3 /* NSString+SymlinksAndAliases.m */; };
 		DA7491D416672D17001BC4A3 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA7491D316672D17001BC4A3 /* Security.framework */; };
+		DAB6100A1689418500E11AAF /* Sample in Resources */ = {isa = PBXBuildFile; fileRef = DAB610091689418500E11AAF /* Sample */; };
 		DAC3128415E5C1CF00261862 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DAC3128315E5C1CF00261862 /* Cocoa.framework */; };
 		DAC3128E15E5C1CF00261862 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DAC3128C15E5C1CF00261862 /* InfoPlist.strings */; };
 		DAC3129015E5C1CF00261862 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DAC3128F15E5C1CF00261862 /* main.m */; };
@@ -86,6 +87,7 @@
 		DA7491CD16672B66001BC4A3 /* NSString+SymlinksAndAliases.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+SymlinksAndAliases.m"; sourceTree = "<group>"; };
 		DA7491D316672D17001BC4A3 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		DA7491D516672D3E001BC4A3 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Security.framework; sourceTree = "<group>"; };
+		DAB610091689418500E11AAF /* Sample */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Sample; sourceTree = "<group>"; };
 		DAC3127F15E5C1CF00261862 /* MarkBook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MarkBook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAC3128315E5C1CF00261862 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		DAC3128615E5C1CF00261862 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -158,6 +160,7 @@
 		DAC3127415E5C1CF00261862 = {
 			isa = PBXGroup;
 			children = (
+				DAB610091689418500E11AAF /* Sample */,
 				DA0318FC166F154F009BAF7A /* bookmark.icns */,
 				DA7491D316672D17001BC4A3 /* Security.framework */,
 				DA013FB015F31502004B7DD2 /* blue-rabbit-icon.icns */,
@@ -338,6 +341,7 @@
 				DA013FB115F31502004B7DD2 /* blue-rabbit-icon.icns in Resources */,
 				DA0318FA166E0E5B009BAF7A /* Reeder-Noise.png in Resources */,
 				DA0318FD166F154F009BAF7A /* bookmark.icns in Resources */,
+				DAB6100A1689418500E11AAF /* Sample in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
